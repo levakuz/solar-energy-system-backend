@@ -1,8 +1,14 @@
+from asyncpg import UniqueViolationError
+from tortoise.exceptions import IntegrityError
+from tortoise.transactions import atomic
+
 from src.accounts.domain import UserAccount
+from src.accounts.exceptions import AccountWithEmailAlreadyExistsException, CompanyWithNameAlreadyExistsException
 from src.auth.services import get_password_hash
 from src.core.repository import AbstractRepository
 
 
+@atomic()
 async def register_account(
         email: str,
         password: str,
@@ -18,9 +24,18 @@ async def register_account(
     :return: Account domain model
     """
     hashed_password = get_password_hash(password)
-    account = await account_repository.add(email=email, password=hashed_password, commit=False)
-    user_account = await child_account_repository.add(
-        account_id=account.id,
-        **kwargs
-    )
-    return account
+    try:
+        account = await account_repository.add(email=email, password=hashed_password, commit=False)
+        user_account = await child_account_repository.add(
+            account_id=account.id,
+            **kwargs
+        )
+        return account
+    except IntegrityError as e:
+        if type(e.args[0]) is UniqueViolationError:
+            if e.args[0].constraint_name == 'Account_email_key':
+                raise AccountWithEmailAlreadyExistsException
+            elif e.args[0].constraint_name == 'CompanyAccount_name_key':
+                raise CompanyWithNameAlreadyExistsException
+            else:
+                raise e
