@@ -6,3 +6,10 @@ credentials_exception = HTTPException(
     detail="Could not validate credentials",
     headers={"WWW-Authenticate": "Bearer"},
 )
+
+
+class InvalidCredentialsException(Exception):
+    message = "Invalid credentials were provided"
+
+    def __str__(self):
+        return InvalidCredentialsException.message

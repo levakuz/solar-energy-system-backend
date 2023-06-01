@@ -1,17 +1,5 @@
 from pydantic import BaseSettings
 
-TORTOISE_ORM = {
-    "connections": {"default": "asyncpg://admin:admin@127.0.0.1:5432/test"},
-    "apps": {
-        "models": {
-            "models": [
-                "src.accounts.models",
-                "aerich.models"
-            ],
-            "default_connection": "default",
-        },
-    }}
-
 
 class Settings(BaseSettings):
     # auth_key: str
@@ -21,7 +9,17 @@ class Settings(BaseSettings):
     ALGORITHM = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-    # TORTOISE_ORM: TORTOISE_ORM = TORTOISE_ORM
+    TORTOISE_ORM: dict = {
+        "connections": {"default": "asyncpg://admin:admin@127.0.0.1:5432/test"},
+        "apps": {
+            "models": {
+                "models": [
+                    "src.accounts.models",
+                    "aerich.models"
+                ],
+                "default_connection": "default",
+            },
+        }}
 
     class Config:
         fields = {
@@ -29,3 +27,6 @@ class Settings(BaseSettings):
                 'env': 'my_auth_key'
             }
         }
+
+
+settings: Settings = Settings()

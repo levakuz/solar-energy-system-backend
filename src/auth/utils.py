@@ -1,15 +1,16 @@
 from datetime import timedelta, datetime
 
 from fastapi import Depends
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer
 from jose import jwt
 from passlib.context import CryptContext
 
-from src.settings import Settings
+from src.auth.auth_bearer import JWTBearer
+from src.settings import Settings, settings
 
 crypto_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2_scheme = JWTBearer()
 
 
 def create_access_token(
@@ -22,5 +23,6 @@ def create_access_token(
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, Settings().SECRET_KEY, algorithm=Settings().ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
+

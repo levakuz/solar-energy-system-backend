@@ -4,6 +4,6 @@ from src.core.repository import TortoiseRepository
 
 
 class AccountRepository(TortoiseRepository):
-    def __init__(self, model=AccountDatabaseModel, domain=AccountDomainModel):
-        super().__int__(model=model, domain=domain)
+    def __init__(self, domain=AccountDomainModel):
+        super().__init__(domain=domain)
 
