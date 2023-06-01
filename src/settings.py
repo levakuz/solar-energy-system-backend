@@ -47,3 +47,4 @@ class Settings(BaseSettings):
 
 
 settings: Settings = Settings()
+TORTOISE_ORM: dict = Settings().TORTOISE_ORM

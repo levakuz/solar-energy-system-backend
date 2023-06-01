@@ -1,4 +1,4 @@
-from typing import Annotated, TypeVar, Type
+from typing import Annotated
 
 import tortoise
 from fastapi import Depends
@@ -8,14 +8,12 @@ from passlib.context import CryptContext
 from src.accounts.domain import Account
 from src.accounts.exceptions import UserDoesNotExistsException, InactiveUserException
 from src.accounts.models import AccountStatus
-from src.accounts.repository import AccountRepository
 from src.auth.exceptions import InvalidCredentialsException
 from src.auth.schemas import TokenData
 from src.auth.utils import crypto_context, oauth2_scheme
-from src.core.repository_factory import RepositoryFactory
 from src.core.repository import AbstractRepository, TortoiseRepository
+from src.core.repository_factory import RepositoryFactory
 from src.settings import Settings, settings
-
 
 
 def verify_password(
@@ -59,7 +57,7 @@ async def authenticate_user(
     :return: Account domain model
     """
     try:
-        user = await repository.get(email=email) # type: Account
+        user = await repository.get(email=email)  # type: Account
     except tortoise.exceptions.DoesNotExist:
         raise UserDoesNotExistsException
     if not verify_password(password, user.password):
@@ -108,19 +106,3 @@ async def get_current_active_user(
     if current_user.status == AccountStatus.inactive:
         raise InactiveUserException
     return current_user
-
-
-async def register_user(
-        email: str,
-        password: str,
-        account_repository: AbstractRepository
-) -> Account:
-    """
-    Register user in service with provided email and password
-    :param email: email
-    :param password: plain password
-    :param account_repository: Account repository
-    :return: Account domain model
-    """
-    hashed_password = get_password_hash(password)
-    return await account_repository.add(email=email, password=hashed_password)

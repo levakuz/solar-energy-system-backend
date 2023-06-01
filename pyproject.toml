@@ -23,7 +23,7 @@ python-multipart = "^0.0.6"
 
 
 [tool.aerich]
-tortoise_orm = "src.settings.settings.TORTOISE_ORM"
+tortoise_orm = "src.settings.TORTOISE_ORM"
 location = "src/database/migrations"
 src_folder = "./."
 [build-system]

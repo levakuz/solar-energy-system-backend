@@ -1,19 +1,17 @@
 from datetime import timedelta
-from typing import Annotated, Type
+from typing import Annotated
 
 import fastapi.routing
 from fastapi import HTTPException, Depends
-from fastapi.security import OAuth2PasswordRequestForm
 from starlette import status
 
 from src.accounts.domain import Account
-from src.accounts.repository import AccountRepository
 from src.auth.schemas import Token, LoginData
-from src.auth.services import authenticate_user, get_current_active_user, register_user
+from src.auth.services import authenticate_user
 from src.auth.utils import create_access_token
-from src.core.repository_factory import RepositoryFactory
 from src.core.repository import AbstractRepository, TortoiseRepository
-from src.settings import Settings, settings
+from src.core.repository_factory import RepositoryFactory
+from src.settings import settings
 
 router = fastapi.routing.APIRouter()
 
@@ -41,17 +39,3 @@ async def login_for_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
     )
     return Token.parse_obj({"access_token": access_token, "token_type": "bearer"})
-
-
-@router.post("/register", response_model=Token)
-async def create_user(
-        form_data: LoginData
-):
-    return await register_user(
-        form_data.email,
-        form_data.password,
-        AccountRepository()
-    )
-
-
-
