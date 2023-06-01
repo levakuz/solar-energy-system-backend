@@ -1,16 +1,18 @@
-from pydantic import BaseSettings
+from pydantic import BaseSettings, Field
 
 
 class Settings(BaseSettings):
-    # auth_key: str
-    # api_key: str = Field(..., env='my_api_key')
     db_url: str = ''
-    SECRET_KEY = 'cd6220207f0b9384a974b86ed73378ca1f6b57bc5af7b1e2eb937e35e78a54dd'
-    ALGORITHM = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES = 30
+    SECRET_KEY = ''
+    ALGORITHM = 'HS256'
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    DB_USER: str = 'admin'
+    DB_PASSWORD: str = 'admin'
+    DB_IP: str = 'localhost'
+    DB_NAME: str = 'test'
 
     TORTOISE_ORM: dict = {
-        "connections": {"default": "asyncpg://admin:admin@127.0.0.1:5432/test"},
+        "connections": {"default": f"asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_IP}/{DB_NAME}"},
         "apps": {
             "models": {
                 "models": [
@@ -23,8 +25,23 @@ class Settings(BaseSettings):
 
     class Config:
         fields = {
-            'auth_key': {
-                'env': 'my_auth_key'
+            'SECRET_KEY': {
+                'env': 'SECRET_KEY'
+            },
+            'ALGORITHM': {
+                'env': 'ALGORITHM'
+            },
+            'DB_PASSWORD': {
+                'env': 'DB_PASSWORD'
+            },
+            'DB_USER': {
+                'env': 'DB_USER'
+            },
+            'DB_IP': {
+                'env': 'DB_IP'
+            },
+            'ACCESS_TOKEN_EXPIRE_MINUTES': {
+                'env': 'ACCESS_TOKEN_EXPIRE_MINUTES'
             }
         }
 
