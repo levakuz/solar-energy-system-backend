@@ -1,23 +1,22 @@
-from asyncpg import UniqueViolationError
-from tortoise.exceptions import IntegrityError, DoesNotExist
+from pydantic import BaseModel
+from pydantic import BaseModel
+from tortoise.exceptions import DoesNotExist
 from tortoise.transactions import atomic
 
-from src.accounts.domain import UserAccount
-from src.accounts.exceptions import AccountWithEmailAlreadyExistsException, CompanyWithNameAlreadyExistsException, \
-    UserDoesNotExistsException
+from src.accounts.exceptions import AccountDoesNotExistsException
 from src.accounts.schemas import AccountDeleteSchema
 from src.auth.services import get_password_hash
-from src.core.repository import AbstractRepository
+from src.core.unit_of_work import AbstractUnitOfWork
 
 
 @atomic()
 async def register_account(
         email: str,
         password: str,
-        account_repository: AbstractRepository,
-        child_account_repository: AbstractRepository,
+        account_uow: AbstractUnitOfWork,
+        child_account_uow: AbstractUnitOfWork,
         **kwargs
-) -> UserAccount:
+) -> BaseModel:
     """
     Register user in service with provided email and password
     :param email: email
@@ -26,30 +25,19 @@ async def register_account(
     :return: Account domain model
     """
     hashed_password = get_password_hash(password)
-    try:
-        account = await account_repository.add(email=email, password=hashed_password)
-        user_account = await child_account_repository.add(
-            account_id=account.id,
-            **kwargs
-        )
-        return account
-    except IntegrityError as e:
-        if type(e.args[0]) is UniqueViolationError:
-            if e.args[0].constraint_name == 'Account_email_key':
-                raise AccountWithEmailAlreadyExistsException
-            elif e.args[0].constraint_name == 'CompanyAccount_name_key':
-                raise CompanyWithNameAlreadyExistsException
-            else:
-                raise e
+    account = await account_uow.add(email=email, password=hashed_password)
+    user_account = await child_account_uow.add(
+        account_id=account.id,
+        **kwargs
+    )
+    return account
 
 
 @atomic()
-async def delete_account(
-        account_repository: AbstractRepository,
+async def mark_account_as_inactive(
+        account_uow: AbstractUnitOfWork,
         id: int
 ):
-    try:
-        account = await account_repository.update(id=id, update_object=AccountDeleteSchema())
-        return account
-    except DoesNotExist as e:
-        raise UserDoesNotExistsException
+    account = await account_uow.update(id=id, update_object=AccountDeleteSchema())
+    return account
+

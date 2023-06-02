@@ -5,17 +5,27 @@ from fastapi import Depends
 from starlette.responses import JSONResponse
 
 from src.accounts import services
-from src.accounts.domain import Account, UserAccount, CompanyAccount
-from src.accounts.exceptions import UserDoesNotExistsException
-from src.accounts.schemas import UserRegistrationSchema, AccountSchema, UserAccountSchema, CompanyRegistrationSchema, \
+from src.accounts.domain import Account
+from src.accounts.exceptions import (
+    AccountDoesNotExistsException,
+    CompanyWithNameAlreadyExistsException
+)
+from src.accounts.schemas import (
+    UserRegistrationSchema,
+    AccountSchema,
+    UserAccountSchema,
+    CompanyRegistrationSchema,
     CompanyAccountSchema
-from src.accounts.services import register_account
+)
+from src.accounts.unit_of_work import (
+    UserAccountUnitOfWork,
+    CompanyAccountUnitOfWork,
+    AccountUnitOfWork
+)
 from src.auth.services import get_current_active_user
-from src.core.repository import AbstractRepository, TortoiseRepository
-from src.core.repository_factory import RepositoryFactory
+from src.core.unit_of_work import AbstractUnitOfWork
 
 account_router = fastapi.routing.APIRouter(
-
     prefix='/accounts'
 )
 
@@ -30,28 +40,19 @@ async def read_users_me(
 @account_router.post("/user/", response_model=Account, tags=['User'])
 async def create_user(
         form_data: UserRegistrationSchema,
-        account_repository: Annotated[
-            AbstractRepository,
-            Depends(RepositoryFactory(
-                domain_model=Account,
-                type_repository=TortoiseRepository
-            ))
+        account_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(AccountUnitOfWork)
         ],
-        user_account_repository: Annotated[
-            AbstractRepository,
-            Depends(RepositoryFactory(
-                domain_model=UserAccount,
-                type_repository=TortoiseRepository
-            ))
-        ]
+        user_account_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(UserAccountUnitOfWork)
+        ],
 ):
-    return await register_account(
-        form_data.email,
-        form_data.password,
-        account_repository,
-        user_account_repository,
-        first_name=form_data.first_name,
-        last_name=form_data.last_name
+    return await services.register_account(
+        account_uow=account_uow,
+        child_account_uow=user_account_uow,
+        **form_data.dict(),
     )
 
 
@@ -63,18 +64,14 @@ async def create_user(
 )
 async def delete_account(
         id: int,
-        account_repository: Annotated[
-            AbstractRepository,
-            Depends(RepositoryFactory(
-                domain_model=Account,
-                type_repository=TortoiseRepository
-            ))
+        account_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(AccountUnitOfWork)
         ],
-
 ):
     try:
-        return await services.delete_account(id=id, account_repository=account_repository)
-    except UserDoesNotExistsException as e:
+        return await services.mark_account_as_inactive(id=id, account_uow=account_uow)
+    except AccountDoesNotExistsException as e:
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
@@ -86,19 +83,16 @@ async def delete_account(
 )
 async def update_user_account(
         id: int,
-        account_repository: Annotated[
-            AbstractRepository,
-            Depends(RepositoryFactory(
-                domain_model=UserAccount,
-                type_repository=TortoiseRepository
-            ))
+        account_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(UserAccountUnitOfWork)
         ],
         account: UserAccountSchema
 
 ):
     try:
-        return await account_repository.update(account_id=id, update_object=account)
-    except UserDoesNotExistsException as e:
+        return await account_uow.update(account_id=id, update_object=account)
+    except AccountDoesNotExistsException as e:
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
@@ -110,47 +104,40 @@ async def update_user_account(
 )
 async def get_user_account(
         id: int,
-        account_repository: Annotated[
-            AbstractRepository,
-            Depends(RepositoryFactory(
-                domain_model=UserAccount,
-                type_repository=TortoiseRepository
-            ))
+        account_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(UserAccountUnitOfWork)
         ],
-
 ):
     try:
-        user_account = await account_repository.get(account_id=id)
+        user_account = await account_uow.get(account_id=id)
         return user_account
-    except UserDoesNotExistsException as e:
+    except AccountDoesNotExistsException as e:
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
 @account_router.post("/company/", response_model=Account, tags=['Company'])
 async def create_company(
         form_data: CompanyRegistrationSchema,
-        account_repository: Annotated[
-            AbstractRepository,
-            Depends(RepositoryFactory(
-                domain_model=Account,
-                type_repository=TortoiseRepository
-            ))
+        account_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(AccountUnitOfWork)
         ],
-        company_account_repository: Annotated[
-            AbstractRepository,
-            Depends(RepositoryFactory(
-                domain_model=CompanyAccount,
-                type_repository=TortoiseRepository
-            ))
-        ]
+        company_account_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(CompanyAccountUnitOfWork)
+        ],
 ):
-    return await register_account(
-        form_data.email,
-        form_data.password,
-        account_repository,
-        company_account_repository,
-        name=form_data.name
-    )
+    try:
+        return await services.register_account(
+            form_data.email,
+            form_data.password,
+            account_uow,
+            company_account_uow,
+            name=form_data.name
+        )
+    except CompanyWithNameAlreadyExistsException as e:
+        return JSONResponse(status_code=400, content={'detail': e.message})
 
 
 @account_router.get(
@@ -161,18 +148,14 @@ async def create_company(
 )
 async def get_company_account(
         id: int,
-        account_repository: Annotated[
-            AbstractRepository,
-            Depends(RepositoryFactory(
-                domain_model=CompanyAccount,
-                type_repository=TortoiseRepository
-            ))
+        company_account_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(CompanyAccountUnitOfWork)
         ],
-
 ):
     try:
-        return await account_repository.get(account_id=id)
-    except UserDoesNotExistsException as e:
+        return await company_account_uow.get(account_id=id)
+    except AccountDoesNotExistsException as e:
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
@@ -182,18 +165,17 @@ async def get_company_account(
     dependencies=[Depends(get_current_active_user)],
     tags=['Company']
 )
-async def get_company_account(
+async def update_company_account(
         id: int,
-        account_repository: Annotated[
-            AbstractRepository,
-            Depends(RepositoryFactory(
-                domain_model=CompanyAccount,
-                type_repository=TortoiseRepository
-            ))
+        company_account_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(CompanyAccountUnitOfWork)
         ],
         company_account: CompanyAccountSchema
 ):
     try:
-        return await account_repository.update(account_id=id, update_object=company_account)
-    except UserDoesNotExistsException as e:
+        return await company_account_uow.update(account_id=id, update_object=company_account)
+    except AccountDoesNotExistsException as e:
         return JSONResponse(status_code=404, content={'detail': e.message})
+    except CompanyWithNameAlreadyExistsException as e:
+        return JSONResponse(status_code=400, content={'detail': e.message})
