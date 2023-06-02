@@ -1,8 +1,8 @@
-class UserDoesNotExistsException(Exception):
-    message = "User does not exist"
+class AccountDoesNotExistsException(Exception):
+    message = "Account does not exist"
 
     def __str__(self):
-        return UserDoesNotExistsException.message
+        return AccountDoesNotExistsException.message
 
 
 class InactiveUserException(Exception):

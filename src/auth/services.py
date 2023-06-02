@@ -6,7 +6,7 @@ from jose import jwt, JWTError
 from passlib.context import CryptContext
 
 from src.accounts.domain import Account
-from src.accounts.exceptions import UserDoesNotExistsException, InactiveUserException
+from src.accounts.exceptions import AccountDoesNotExistsException, InactiveUserException
 from src.accounts.models import AccountStatus
 from src.auth.exceptions import InvalidCredentialsException
 from src.auth.schemas import TokenData
@@ -57,9 +57,9 @@ async def authenticate_user(
     :return: Account domain model
     """
     try:
-        user = await repository.get(email=email)  # type: Account
+        user = await repository.get(email=email)
     except tortoise.exceptions.DoesNotExist:
-        raise UserDoesNotExistsException
+        raise AccountDoesNotExistsException
     if not verify_password(password, user.password):
         raise InvalidCredentialsException
     return user

@@ -1,6 +1,6 @@
 import enum
 
-from tortoise import Model
+from tortoise import Model, OneToOneFieldInstance
 from tortoise.fields import CharField, CharEnumField, ForeignKeyField, OneToOneField, CASCADE
 
 from src.core.models import BaseModel
@@ -22,7 +22,12 @@ class Account(BaseModel):
 
 
 class CompanyAccount(Model):
-    account = OneToOneField('models.Account', related_name='company_account', on_delete=CASCADE, pk=True)
+    account = OneToOneField(
+        'models.Account',
+        related_name='company_account',
+        on_delete=CASCADE,
+        pk=True
+    )  # type: OneToOneFieldInstance[Account]
     name = CharField(max_length=255, unique=True)
 
     class Meta:
@@ -35,7 +40,12 @@ class UserAccountType(enum.StrEnum):
 
 
 class UserAccount(Model):
-    account = OneToOneField('models.Account', related_name='user_account', on_delete=CASCADE, pk=True)
+    account = OneToOneField(
+        'models.Account',
+        related_name='user_account',
+        on_delete=CASCADE,
+        pk=True
+    )  # type: OneToOneFieldInstance[Account]
     type = CharEnumField(enum_type=UserAccountType, default=UserAccountType.free)
     first_name = CharField(max_length=255)
     last_name = CharField(max_length=255)
