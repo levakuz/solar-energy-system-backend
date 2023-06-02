@@ -2,6 +2,7 @@ import abc
 from typing import Type
 
 from pydantic import BaseModel as PydanticModel
+from tortoise import Model
 
 
 class AbstractRepository(abc.ABC):
@@ -25,6 +26,10 @@ class AbstractRepository(abc.ABC):
     async def add(self, *args, **kwargs):
         raise NotImplementedError
 
+    @abc.abstractmethod
+    async def update(self, update_object: PydanticModel, **kwargs, ):
+        raise NotImplementedError
+
 
 class TortoiseRepository(AbstractRepository):
 
@@ -35,7 +40,7 @@ class TortoiseRepository(AbstractRepository):
         self.domain = domain
 
     async def get(self, **kwargs) -> PydanticModel:
-        db_model = await self.domain.__config__.db_model.get(**kwargs)
+        db_model = await self.domain.__config__.db_model.get(**kwargs)  # type: Model
         return self.domain.parse_obj(db_model.__dict__)
 
     async def delete(self, *args, **kwargs):
@@ -47,3 +52,8 @@ class TortoiseRepository(AbstractRepository):
 
     async def list(self, *args, **kwargs):
         pass
+
+    async def update(self, update_object: PydanticModel, **kwargs):
+        await self.domain.__config__.db_model.get(**kwargs).update(**update_object.dict())
+        updated_model = await self.domain.__config__.db_model.get(**kwargs)
+        return self.domain.parse_obj(updated_model)
