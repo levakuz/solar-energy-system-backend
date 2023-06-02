@@ -1,5 +1,7 @@
 from pydantic import BaseModel
 
+from src.accounts.models import AccountStatus
+
 
 class CompanyRegistrationSchema(BaseModel):
     email: str
@@ -12,3 +14,22 @@ class UserRegistrationSchema(BaseModel):
     password: str
     first_name: str
     last_name: str
+
+
+class UserAccountSchema(BaseModel):
+    first_name: str
+    last_name: str
+
+
+class AccountSchema(BaseModel):
+    email: str
+    phone_number: str | None
+    status: AccountStatus
+
+
+class AccountDeleteSchema(BaseModel):
+    status: AccountStatus = AccountStatus.inactive
+
+
+class CompanyAccountSchema(BaseModel):
+    name: str

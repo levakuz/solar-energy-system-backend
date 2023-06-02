@@ -16,7 +16,7 @@ from src.settings import settings
 router = fastapi.routing.APIRouter()
 
 
-@router.post("/token", response_model=Token)
+@router.post("/token", response_model=Token, tags=['Account'])
 async def login_for_access_token(
         form_data: LoginData,
         account_repository: Annotated[

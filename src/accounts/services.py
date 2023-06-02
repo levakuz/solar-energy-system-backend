@@ -1,9 +1,11 @@
 from asyncpg import UniqueViolationError
-from tortoise.exceptions import IntegrityError
+from tortoise.exceptions import IntegrityError, DoesNotExist
 from tortoise.transactions import atomic
 
 from src.accounts.domain import UserAccount
-from src.accounts.exceptions import AccountWithEmailAlreadyExistsException, CompanyWithNameAlreadyExistsException
+from src.accounts.exceptions import AccountWithEmailAlreadyExistsException, CompanyWithNameAlreadyExistsException, \
+    UserDoesNotExistsException
+from src.accounts.schemas import AccountDeleteSchema
 from src.auth.services import get_password_hash
 from src.core.repository import AbstractRepository
 
@@ -25,7 +27,7 @@ async def register_account(
     """
     hashed_password = get_password_hash(password)
     try:
-        account = await account_repository.add(email=email, password=hashed_password, commit=False)
+        account = await account_repository.add(email=email, password=hashed_password)
         user_account = await child_account_repository.add(
             account_id=account.id,
             **kwargs
@@ -39,3 +41,15 @@ async def register_account(
                 raise CompanyWithNameAlreadyExistsException
             else:
                 raise e
+
+
+@atomic()
+async def delete_account(
+        account_repository: AbstractRepository,
+        id: int
+):
+    try:
+        account = await account_repository.update(id=id, update_object=AccountDeleteSchema())
+        return account
+    except DoesNotExist as e:
+        raise UserDoesNotExistsException
