@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from src.device_types import DeviceType as DeviceTypeDatabaseModel
+from src.device_types.models import DeviceType as DeviceTypeDatabaseModel
 
 
 class DeviceType(BaseModel):
