@@ -5,6 +5,7 @@ from starlette.responses import JSONResponse
 from src.accounts.exceptions import InactiveUserException
 from src.accounts.router import account_router
 from src.auth.router import router as auth_router
+from src.device_types.router import device_type_router
 from src.database import init_database
 
 app = FastAPI()
@@ -19,6 +20,7 @@ app.add_middleware(
 
 app.include_router(auth_router, prefix='/api/v1')
 app.include_router(account_router, prefix='/api/v1')
+app.include_router(device_type_router, prefix='/api/v1')
 
 app.add_event_handler('startup', init_database)
 

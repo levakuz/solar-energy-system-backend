@@ -17,6 +17,7 @@ class Settings(BaseSettings):
             "models": {
                 "models": [
                     "src.accounts.models",
+                    "src.device_types.models",
                     "aerich.models"
                 ],
                 "default_connection": "default",
