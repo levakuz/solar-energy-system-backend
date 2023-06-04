@@ -45,7 +45,9 @@ class TortoiseRepository(AbstractRepository):
         return self.domain.parse_obj(db_model.__dict__)
 
     async def delete(self, *args, **kwargs) -> NoReturn:
-        await self.domain.__config__.db_model.delete(**kwargs)
+        db_model = await self.domain.__config__.db_model.get(**kwargs)
+        await db_model.delete()
+        await db_model.save()
 
     async def add(self, *args, **kwargs) -> T:
         db_model = await self.domain.__config__.db_model.create(**kwargs)
