@@ -1,9 +1,7 @@
 from pydantic import BaseModel
-from pydantic import BaseModel
-from tortoise.exceptions import DoesNotExist
 from tortoise.transactions import atomic
 
-from src.accounts.exceptions import AccountDoesNotExistsException
+from src.accounts.models import AccountRole
 from src.accounts.schemas import AccountDeleteSchema
 from src.auth.services import get_password_hash
 from src.core.unit_of_work import AbstractUnitOfWork
@@ -13,6 +11,7 @@ from src.core.unit_of_work import AbstractUnitOfWork
 async def register_account(
         email: str,
         password: str,
+        role: AccountRole,
         account_uow: AbstractUnitOfWork,
         child_account_uow: AbstractUnitOfWork,
         **kwargs
@@ -25,7 +24,11 @@ async def register_account(
     :return: Account domain model
     """
     hashed_password = get_password_hash(password)
-    account = await account_uow.add(email=email, password=hashed_password)
+    account = await account_uow.add(
+        email=email,
+        password=hashed_password,
+        role=role
+    )
     user_account = await child_account_uow.add(
         account_id=account.id,
         **kwargs
@@ -40,4 +43,3 @@ async def mark_account_as_inactive(
 ):
     account = await account_uow.update(id=id, update_object=AccountDeleteSchema())
     return account
-

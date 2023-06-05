@@ -10,6 +10,7 @@ from src.accounts.exceptions import (
     AccountDoesNotExistsException,
     CompanyWithNameAlreadyExistsException
 )
+from src.accounts.models import AccountRole
 from src.accounts.schemas import (
     UserRegistrationSchema,
     AccountSchema,
@@ -52,6 +53,7 @@ async def create_user(
     return await services.register_account(
         account_uow=account_uow,
         child_account_uow=user_account_uow,
+        role=AccountRole.USER,
         **form_data.dict(),
     )
 
@@ -130,11 +132,10 @@ async def create_company(
 ):
     try:
         return await services.register_account(
-            form_data.email,
-            form_data.password,
-            account_uow,
-            company_account_uow,
-            name=form_data.name
+            role=AccountRole.COMPANY,
+            account_uow=account_uow,
+            child_account_uow=company_account_uow,
+            **form_data.dict()
         )
     except CompanyWithNameAlreadyExistsException as e:
         return JSONResponse(status_code=400, content={'detail': e.message})
