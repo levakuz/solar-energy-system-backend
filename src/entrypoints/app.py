@@ -5,8 +5,9 @@ from starlette.responses import JSONResponse
 from src.accounts.exceptions import InactiveUserException
 from src.accounts.router import account_router
 from src.auth.router import router as auth_router
-from src.device_types.router import device_type_router
+from src.core.scheduler import service_scheduler
 from src.database import init_database
+from src.device_types.router import device_type_router
 from src.locations.router import locations_router
 
 app = FastAPI()
@@ -25,6 +26,7 @@ app.include_router(device_type_router, prefix='/api/v1')
 app.include_router(locations_router, prefix='/api/v1')
 
 app.add_event_handler('startup', init_database)
+app.add_event_handler('startup', service_scheduler.start)
 
 
 @app.exception_handler(InactiveUserException)
