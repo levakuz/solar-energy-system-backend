@@ -4,12 +4,11 @@ from fastapi import Depends
 from pydantic import BaseModel
 from tortoise.exceptions import DoesNotExist
 
-from src.accounts.domain import UserAccount
-from src.accounts.exceptions import AccountDoesNotExistsException
 from src.core.repository import TortoiseRepository, AbstractRepository
 from src.core.repository_factory import RepositoryFactory
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.device_types.domain import DeviceType
+from src.device_types.exceptions import DeviceTypeDoesNotExistsException
 
 
 class DeviceTypeUnitOfWork(AbstractUnitOfWork[DeviceType]):
@@ -29,14 +28,14 @@ class DeviceTypeUnitOfWork(AbstractUnitOfWork[DeviceType]):
         try:
             return await self._device_type_repository.get(*args, **kwargs)
         except DoesNotExist as e:
-            raise AccountDoesNotExistsException
+            raise DeviceTypeDoesNotExistsException
 
     async def update(self, update_object: BaseModel, **kwargs) -> DeviceType:
         try:
             await self._device_type_repository.update(update_object=update_object, **kwargs)
             return await self._device_type_repository.get(**kwargs)
         except DoesNotExist as e:
-            raise AccountDoesNotExistsException
+            raise DeviceTypeDoesNotExistsException
 
     async def add(self, *args, **kwargs) -> DeviceType:
         return await self._device_type_repository.add(*args, **kwargs)
