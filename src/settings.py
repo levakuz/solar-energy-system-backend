@@ -1,15 +1,28 @@
 from pydantic import BaseSettings
 
 
-class SchedulerSettings(BaseSettings):
+class MongoSettings(BaseSettings):
     MONGO_IP: str = 'localhost'
     MONGO_USER: str = 'admin'
     MONGO_PORT: int = 27017
     MONGO_PASSWORD: str = 'admin'
-    MONGO_DB_NAME: str = 'scheduler'
-    MONGO_COLLECTION_NAME: str = 'jobs'
-    # URL: str = f'mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_IP}:{MONGO_PORT}'
-    URL: str = f'mongodb://{MONGO_USER}:{MONGO_PASSWORD}@{MONGO_IP}:{MONGO_PORT}/?authSource=admin&directConnection=true&ssl=false'
+    MONGO_SCHEDULE_TASKS_DB_NAME: str = 'scheduler'
+    MONGO_SCHEDULE_TASKS_COLLECTION_NAME: str = 'jobs'
+    MONGO_WEATHER_DATA_DB_NAME: str = 'weather_data'
+    SCHEDULER_URL: str = f'mongodb://' \
+                         f'{MONGO_USER}:' \
+                         f'{MONGO_PASSWORD}@' \
+                         f'{MONGO_IP}:' \
+                         f'{MONGO_PORT}' \
+                         f'/?authSource=admin&directConnection=true&ssl=false'
+
+    BEANIE_URL: str = f'mongodb://' \
+                      f'{MONGO_USER}:' \
+                      f'{MONGO_PASSWORD}@' \
+                      f'{MONGO_IP}:' \
+                      f'{MONGO_PORT}/' \
+                      f'{MONGO_WEATHER_DATA_DB_NAME}' \
+                      f'?authSource=admin&directConnection=true&ssl=false'
 
     class Config:
         fields = {
@@ -25,11 +38,17 @@ class SchedulerSettings(BaseSettings):
             'MONGO_PASSWORD': {
                 'env': 'MONGO_PASSWORD'
             },
-            'MONGO_DB_NAME': {
-                'env': 'MONGO_DB_NAME'
+            'MONGO_SCHEDULE_TASKS_DB_NAME': {
+                'env': 'MONGO_SCHEDULE_TASKS_DB_NAME'
             },
-            'MONGO_COLLECTION_NAME': {
-                'env': 'MONGO_COLLECTION_NAME'
+            'MONGO_SCHEDULE_TASKS_COLLECTION_NAME': {
+                'env': 'MONGO_SCHEDULE_TASKS_COLLECTION_NAME'
+            },
+            'MONGO_WEATHER_DATA_DB_NAME': {
+                'env': 'MONGO_WEATHER_DATA_DB_NAME'
+            },
+            'MONGO_WEATHER_DATA_COLLECTION_NAME': {
+                'env': 'MONGO_WEATHER_DATA_COLLECTION_NAME'
             },
         }
 
@@ -58,7 +77,7 @@ class Settings(BaseSettings):
             },
         }}
 
-    SCHEDULER: SchedulerSettings = SchedulerSettings()
+    MONGO_SETTINGS: MongoSettings = MongoSettings()
 
     class Config:
         fields = {
