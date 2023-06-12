@@ -40,7 +40,7 @@ class TortoiseRepository(AbstractRepository):
     ):
         self.domain = domain
 
-    async def get(self, **kwargs) -> T:
+    async def get(self, *args, **kwargs) -> T:
         db_model = await self.domain.__config__.db_model.get(**kwargs)
         return self.domain.parse_obj(db_model.__dict__)
 
@@ -58,3 +58,34 @@ class TortoiseRepository(AbstractRepository):
 
     async def update(self, update_object: PydanticModel, **kwargs) -> T:
         return await self.domain.__config__.db_model.get(**kwargs).update(**update_object.dict())
+
+
+class BeanieRepository(AbstractRepository):
+
+    def __init__(
+            self,
+            domain: T
+    ):
+        self.domain = domain
+
+    async def get(self, *args, **kwargs) -> T | None:
+        db_model = await self.domain.__config__.db_model.find_one(*args, **kwargs)
+        if db_model is not None:
+            return self.domain.parse_obj(db_model.__dict__)
+        return db_model
+
+    async def delete(self, *args, **kwargs) -> NoReturn:
+        db_model = await self.domain.__config__.db_model.find_one(*args, **kwargs)
+        await db_model.delete()
+
+    async def add(self, *args, **kwargs) -> T:
+        db_model = await self.domain.__config__.db_model.insert(**kwargs)
+        return self.domain.parse_obj(db_model.__dict__)
+
+    async def list(self, *args, **kwargs):
+        pass
+
+    async def update(self, update_object: PydanticModel, **kwargs) -> T:
+        return await self.domain.__config__.db_model.find_one(**kwargs).update(**update_object.dict())
+
+
