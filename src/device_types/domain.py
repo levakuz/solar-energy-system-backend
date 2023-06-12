@@ -5,6 +5,7 @@ from src.device_types.models import DeviceType as DeviceTypeDatabaseModel
 
 class DeviceType(BaseModel):
     id: int
+    company_id: int
     name: str
     area: str
     system_loss: str

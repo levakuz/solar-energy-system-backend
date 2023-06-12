@@ -21,6 +21,7 @@ class Settings(BaseSettings):
                     "src.locations.models",
                     "src.projects.models",
                     "src.reports.models",
+                    "src.devices.models",
                     "aerich.models"
                 ],
                 "default_connection": "default",
