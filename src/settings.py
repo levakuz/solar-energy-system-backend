@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     DB_USER: str = 'admin'
     DB_PASSWORD: str = 'admin'
-    DB_IP: str = 'localhost'
+    DB_IP: str = 'localhost:5433'
     DB_NAME: str = 'test'
 
     TORTOISE_ORM: dict = {
@@ -19,6 +19,8 @@ class Settings(BaseSettings):
                     "src.accounts.models",
                     "src.device_types.models",
                     "src.locations.models",
+                    "src.projects.models",
+                    "src.reports.models",
                     "aerich.models"
                 ],
                 "default_connection": "default",

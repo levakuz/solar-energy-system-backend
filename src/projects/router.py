@@ -16,43 +16,43 @@ project_router = fastapi.routing.APIRouter(
 @project_router.post("", response_model=Project, tags=['Projects'])
 async def create_project(
         form_data: ProjectCreateUpdateSchema,
-        user_account_uow: Annotated[
+        project_uow: Annotated[
             AbstractUnitOfWork,
             Depends(ProjectUnitOfWork)
         ],
 ):
-    return await user_account_uow.add(**form_data.dict())
+    return await project_uow.add(**form_data.dict())
 
 
 @project_router.get("/{id}", response_model=Project, tags=['Projects'])
 async def get_project(
         id: int,
-        user_account_uow: Annotated[
+        project_uow: Annotated[
             AbstractUnitOfWork,
             Depends(ProjectUnitOfWork)
         ],
 ):
-    return await user_account_uow.get(id=id)
+    return await project_uow.get(id=id)
 
 
 @project_router.put("/{id}", response_model=Project, tags=['Projects'])
 async def update_project(
         id: int,
         form_data: ProjectCreateUpdateSchema,
-        user_account_uow: Annotated[
+        project_uow: Annotated[
             AbstractUnitOfWork,
             Depends(ProjectUnitOfWork)
         ],
 ):
-    return await user_account_uow.update(id=id, update_object=form_data)
+    return await project_uow.update(id=id, update_object=form_data)
 
 
 @project_router.delete("/{id}", tags=['Projects'])
 async def delete_project(
         id: int,
-        user_account_uow: Annotated[
+        project_uow: Annotated[
             AbstractUnitOfWork,
             Depends(ProjectUnitOfWork)
         ],
 ):
-    return await user_account_uow.delete(id=id)
+    return await project_uow.delete(id=id)

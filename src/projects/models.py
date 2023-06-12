@@ -3,14 +3,14 @@ import enum
 from tortoise.fields import CharField, ForeignKeyField, DatetimeField, CharEnumField
 from src.core.models import BaseModel
 
-class AccountStatus(enum.StrEnum):
+class ProjectStatus(enum.StrEnum):
     active = 'active'
     inactive = 'inactive'
 class Project(BaseModel):
     account = ForeignKeyField('models.UserAccount', related_name='user_projects', to_field='account_id')
     name = CharField(max_length=255, unique=True, null=False)
     created_at = DatetimeField()
-    status = CharEnumField(enum_type=AccountStatus, default=AccountStatus.active)
+    status = CharEnumField(enum_type=ProjectStatus, default=ProjectStatus.active)
 
     class Meta:
         table = "project"

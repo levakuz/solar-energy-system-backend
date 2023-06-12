@@ -8,6 +8,8 @@ from src.auth.router import router as auth_router
 from src.device_types.router import device_type_router
 from src.database import init_database
 from src.locations.router import locations_router
+from src.projects.router import project_router
+from src.reports.router import report_router
 
 app = FastAPI()
 
@@ -23,6 +25,8 @@ app.include_router(auth_router, prefix='/api/v1')
 app.include_router(account_router, prefix='/api/v1')
 app.include_router(device_type_router, prefix='/api/v1')
 app.include_router(locations_router, prefix='/api/v1')
+app.include_router(project_router, prefix='/api/v1')
+app.include_router(report_router, prefix='/api/v1')
 
 app.add_event_handler('startup', init_database)
 
