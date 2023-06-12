@@ -22,6 +22,7 @@ class Settings(BaseSettings):
                     "src.projects.models",
                     "src.reports.models",
                     "src.devices.models",
+                    "src.device_energies.models",
                     "aerich.models"
                 ],
                 "default_connection": "default",

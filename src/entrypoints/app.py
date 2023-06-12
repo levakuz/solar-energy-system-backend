@@ -11,6 +11,7 @@ from src.locations.router import locations_router
 from src.projects.router import project_router
 from src.reports.router import report_router
 from src.devices.router import device_router
+from src.device_energies.router import device_energy_router
 
 app = FastAPI()
 
@@ -29,6 +30,7 @@ app.include_router(locations_router, prefix='/api/v1')
 app.include_router(project_router, prefix='/api/v1')
 app.include_router(report_router, prefix='/api/v1')
 app.include_router(device_router, prefix='/api/v1')
+app.include_router(device_energy_router, prefix='/api/v1')
 
 app.add_event_handler('startup', init_database)
 
