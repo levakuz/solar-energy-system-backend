@@ -8,7 +8,7 @@ from src.core.repository import TortoiseRepository, AbstractRepository
 from src.core.repository_factory import RepositoryFactory
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.projects.domain import Project
-from src.locations.exceptions import LocationDoesNotExistsException
+from src.projects.exceptions import ProjectDoesNotExistsException
 
 
 class ProjectUnitOfWork(AbstractUnitOfWork[Project]):
@@ -28,14 +28,14 @@ class ProjectUnitOfWork(AbstractUnitOfWork[Project]):
         try:
             return await self._project_repository.get(*args, **kwargs)
         except DoesNotExist as e:
-            raise LocationDoesNotExistsException
+            raise ProjectDoesNotExistsException
 
     async def update(self, update_object: BaseModel, **kwargs) -> Project:
         try:
             await self._project_repository.update(update_object=update_object, **kwargs)
             return await self._project_repository.get(**kwargs)
         except DoesNotExist as e:
-            raise LocationDoesNotExistsException
+            raise ProjectDoesNotExistsException
 
     async def add(self, *args, **kwargs) -> Project:
         return await self._project_repository.add(*args, **kwargs)

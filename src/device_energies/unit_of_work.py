@@ -8,7 +8,7 @@ from src.core.repository import TortoiseRepository, AbstractRepository
 from src.core.repository_factory import RepositoryFactory
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.device_energies.domain import DeviceEnergy
-from src.device_types.exceptions import DeviceTypeDoesNotExistsException
+from src.device_energies.exceptions import DeviceEnergyDoesNotExistsException
 
 
 class DeviceEnergyUnitOfWork(AbstractUnitOfWork[DeviceEnergy]):
@@ -28,14 +28,14 @@ class DeviceEnergyUnitOfWork(AbstractUnitOfWork[DeviceEnergy]):
         try:
             return await self._device_energy_repository.get(*args, **kwargs)
         except DoesNotExist as e:
-            raise DeviceTypeDoesNotExistsException
+            raise DeviceEnergyDoesNotExistsException
 
     async def update(self, update_object: BaseModel, **kwargs) -> DeviceEnergy:
         try:
             await self._device_energy_repository.update(update_object=update_object, **kwargs)
             return await self._device_energy_repository.get(**kwargs)
         except DoesNotExist as e:
-            raise DeviceTypeDoesNotExistsException
+            raise DeviceEnergyDoesNotExistsException
 
     async def add(self, *args, **kwargs) -> DeviceEnergy:
         return await self._device_energy_repository.add(*args, **kwargs)

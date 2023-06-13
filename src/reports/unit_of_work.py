@@ -8,7 +8,7 @@ from src.core.repository import TortoiseRepository, AbstractRepository
 from src.core.repository_factory import RepositoryFactory
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.reports.domain import Report
-from src.locations.exceptions import LocationDoesNotExistsException
+from src.reports.exceptions import ReportDoesNotExistsException
 
 
 class ReportUnitOfWork(AbstractUnitOfWork[Report]):
@@ -28,14 +28,14 @@ class ReportUnitOfWork(AbstractUnitOfWork[Report]):
         try:
             return await self._report_repository.get(*args, **kwargs)
         except DoesNotExist as e:
-            raise LocationDoesNotExistsException
+            raise ReportDoesNotExistsException
 
     async def update(self, update_object: BaseModel, **kwargs) -> Report:
         try:
             await self._report_repository.update(update_object=update_object, **kwargs)
             return await self._report_repository.get(**kwargs)
         except DoesNotExist as e:
-            raise LocationDoesNotExistsException
+            raise ReportDoesNotExistsException
 
     async def add(self, *args, **kwargs) -> Report:
         return await self._report_repository.add(*args, **kwargs)
