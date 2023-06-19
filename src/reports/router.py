@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 
 import fastapi
 from fastapi import Depends
@@ -24,6 +24,16 @@ async def create_report(
         ],
 ):
     return await report_uow.add(**form_data.dict())
+
+
+@report_router.get("", response_model=List[Report], tags=['Reports'])
+async def get_reports_list(
+        report_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(ReportUnitOfWork)
+        ],
+):
+    return await report_uow.list()
 
 
 @report_router.get("/{id}", response_model=Report, tags=['Reports'])

@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -7,3 +9,6 @@ class DeviceTypeCreateSchema(BaseModel):
     area: str
     system_loss: str
 
+
+class DeviceTypeFilterSchema(BaseModel):
+    company_id: Optional[int]

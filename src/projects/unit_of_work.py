@@ -1,4 +1,4 @@
-from typing import Annotated, NoReturn
+from typing import Annotated, NoReturn, List
 
 from fastapi import Depends
 from pydantic import BaseModel
@@ -45,3 +45,6 @@ class ProjectUnitOfWork(AbstractUnitOfWork[Project]):
             await self._project_repository.delete(*args, **kwargs)
         except DoesNotExist as e:
             raise ProjectDoesNotExistsException
+
+    async def list(self, *args, **kwargs) -> List[Project]:
+        return await self._project_repository.list(*args, **kwargs)

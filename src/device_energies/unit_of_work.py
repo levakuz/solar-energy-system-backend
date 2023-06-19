@@ -1,4 +1,4 @@
-from typing import Annotated, NoReturn
+from typing import Annotated, NoReturn, List
 
 from fastapi import Depends
 from pydantic import BaseModel
@@ -45,3 +45,6 @@ class DeviceEnergyUnitOfWork(AbstractUnitOfWork[DeviceEnergy]):
             await self._device_energy_repository.delete(*args, **kwargs)
         except DoesNotExist as e:
             raise DeviceEnergyDoesNotExistsException
+
+    async def list(self, *args, **kwargs) -> List[DeviceEnergy]:
+        return await self._device_energy_repository.list(*args, **kwargs)

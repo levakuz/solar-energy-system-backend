@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 
 import fastapi
 from fastapi import Depends
@@ -25,6 +25,16 @@ async def create_location(
         ],
 ):
     return await services.create_location(form_data, location_uow)
+
+
+@locations_router.get("", response_model=List[Location], tags=['Locations'])
+async def get_locations_list(
+        location_uow: Annotated[
+            AbstractUnitOfWork[Location],
+            Depends(LocationUnitOfWork)
+        ],
+):
+    return await location_uow.list()
 
 
 @locations_router.get("/{id}", response_model=Location, tags=['Locations'])

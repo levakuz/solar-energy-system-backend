@@ -1,4 +1,4 @@
-from typing import Annotated, NoReturn
+from typing import Annotated, NoReturn, List
 
 from fastapi import Depends
 from pydantic import BaseModel
@@ -45,3 +45,6 @@ class DeviceTypeUnitOfWork(AbstractUnitOfWork[DeviceType]):
             await self._device_type_repository.delete(*args, **kwargs)
         except DoesNotExist as e:
             raise DeviceTypeDoesNotExistsException
+
+    async def list(self, *args, **kwargs) -> List[DeviceType]:
+        return await self._device_type_repository.list(*args, **kwargs)

@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 
 import fastapi
 from fastapi import Depends
@@ -7,7 +7,7 @@ from starlette.responses import JSONResponse
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.projects.domain import Project
 from src.projects.exceptions import ProjectDoesNotExistsException
-from src.projects.schemas import ProjectCreateUpdateSchema
+from src.projects.schemas import ProjectCreateUpdateSchema, ProjectFilterSchema
 from src.projects.unit_of_work import ProjectUnitOfWork
 
 project_router = fastapi.routing.APIRouter(
@@ -24,6 +24,17 @@ async def create_project(
         ],
 ):
     return await project_uow.add(**form_data.dict())
+
+
+@project_router.get("", response_model=List[Project], tags=['Projects'])
+async def get_projects_list(
+        project_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(ProjectUnitOfWork)
+        ],
+        filters: Annotated[ProjectFilterSchema, Depends(ProjectFilterSchema)],
+):
+    return await project_uow.list(**filters.dict())
 
 
 @project_router.get("/{id}", response_model=Project, tags=['Projects'])

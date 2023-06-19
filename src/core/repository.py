@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Generic, List, NoReturn
+from typing import TypeVar, Generic, List, NoReturn, Callable
 
 from pydantic import BaseModel as PydanticModel, BaseModel
 
@@ -32,6 +32,15 @@ class AbstractRepository(Generic[T], abc.ABC):
         raise NotImplementedError
 
 
+def process_filter(func: Callable):
+    async def wrapper(*args, **kwargs):
+        for key in list(kwargs):
+            if kwargs[key] is None:
+                kwargs.pop(key)
+        return await func(*args, **kwargs)
+    return wrapper
+
+
 class TortoiseRepository(AbstractRepository):
 
     def __init__(
@@ -53,8 +62,10 @@ class TortoiseRepository(AbstractRepository):
         db_model = await self.domain.__config__.db_model.create(**kwargs)
         return self.domain.parse_obj(db_model.__dict__)
 
-    async def list(self, *args, **kwargs):
-        pass
+    @process_filter
+    async def list(self, *args, **kwargs) -> List[T]:
+        db_models = await self.domain.__config__.db_model.filter(*args, **kwargs)
+        return [self.domain.parse_obj(model.__dict__) for model in db_models]
 
     async def update(self, update_object: PydanticModel, **kwargs) -> T:
         return await self.domain.__config__.db_model.get(**kwargs).update(**update_object.dict())

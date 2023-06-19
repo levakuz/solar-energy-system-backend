@@ -1,6 +1,9 @@
 from datetime import datetime
-from src.projects.models import ProjectStatus
+from typing import Optional
+
 from pydantic import BaseModel
+
+from src.projects.models import ProjectStatus
 
 
 class ProjectCreateUpdateSchema(BaseModel):
@@ -8,3 +11,8 @@ class ProjectCreateUpdateSchema(BaseModel):
     account_id: int
     created_at: datetime
     status: ProjectStatus
+
+
+class ProjectFilterSchema(BaseModel):
+    account_id: Optional[int]
+    status: Optional[ProjectStatus]
