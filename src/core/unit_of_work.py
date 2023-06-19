@@ -1,5 +1,5 @@
 import abc
-from typing import NoReturn, TypeVar, Generic
+from typing import NoReturn, TypeVar, Generic, List
 
 from pydantic import BaseModel
 
@@ -18,4 +18,7 @@ class AbstractUnitOfWork(Generic[T], abc.ABC):
         raise NotImplementedError
 
     async def delete(self, *args, **kwargs) -> NoReturn:
+        raise NotImplementedError
+
+    async def list(self, *args, **kwargs) -> List[T]:
         raise NotImplementedError

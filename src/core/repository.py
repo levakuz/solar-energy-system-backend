@@ -53,8 +53,10 @@ class TortoiseRepository(AbstractRepository):
         db_model = await self.domain.__config__.db_model.create(**kwargs)
         return self.domain.parse_obj(db_model.__dict__)
 
-    async def list(self, *args, **kwargs):
-        pass
+    async def list(self, *args, **kwargs) -> List[T]:
+        db_models = await self.domain.__config__.db_model.filter(*args, **kwargs)
+        return [self.domain.parse_obj(model.__dict__) for model in db_models]
+
 
     async def update(self, update_object: PydanticModel, **kwargs) -> T:
         return await self.domain.__config__.db_model.get(**kwargs).update(**update_object.dict())
