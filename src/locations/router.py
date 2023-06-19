@@ -2,10 +2,12 @@ from typing import Annotated
 
 import fastapi
 from fastapi import Depends
+from starlette.responses import JSONResponse
 
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.locations import services
 from src.locations.domain import Location
+from src.locations.exceptions import LocationDoesNotExistsException
 from src.locations.schemas import LocationCreateUpdateSchema
 from src.locations.unit_of_work import LocationUnitOfWork
 
@@ -33,7 +35,10 @@ async def get_location(
             Depends(LocationUnitOfWork)
         ],
 ):
-    return await location_uow.get(id=id)
+    try:
+        return await location_uow.get(id=id)
+    except LocationDoesNotExistsException as e:
+        return JSONResponse(status_code=404, content={'detail': e.message})
 
 
 @locations_router.put("/{id}", response_model=Location, tags=['Locations'])
@@ -45,7 +50,10 @@ async def update_location(
             Depends(LocationUnitOfWork)
         ],
 ):
-    return await location_uow.update(id=id, update_object=form_data)
+    try:
+        return await location_uow.update(id=id, update_object=form_data)
+    except LocationDoesNotExistsException as e:
+        return JSONResponse(status_code=404, content={'detail': e.message})
 
 
 @locations_router.delete("/{id}", tags=['Locations'])
@@ -56,4 +64,7 @@ async def delete_location(
             Depends(LocationUnitOfWork)
         ],
 ):
-    return await location_uow.delete(id=id)
+    try:
+        return await location_uow.delete(id=id)
+    except LocationDoesNotExistsException:
+        return
