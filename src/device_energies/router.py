@@ -66,4 +66,4 @@ async def delete_device_energy(
     try:
         return await device_energy_uow.delete(id=id)
     except DeviceEnergyDoesNotExistsException as e:
-        return JSONResponse(status_code=404, content={'detail': e.message})
+        return
