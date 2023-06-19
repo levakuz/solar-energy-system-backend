@@ -8,11 +8,12 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     DB_USER: str = 'admin'
     DB_PASSWORD: str = 'admin'
-    DB_IP: str = 'localhost:5433'
+    DB_IP: str = 'localhost'
+    DB_PORT: int = 5432
     DB_NAME: str = 'test'
 
     TORTOISE_ORM: dict = {
-        "connections": {"default": f"asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_IP}/{DB_NAME}"},
+        "connections": {"default": f"asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_IP}:{DB_PORT}/{DB_NAME}"},
         "apps": {
             "models": {
                 "models": [
