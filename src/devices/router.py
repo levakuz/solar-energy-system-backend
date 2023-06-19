@@ -2,9 +2,11 @@ from typing import Annotated
 
 import fastapi
 from fastapi import Depends
+from starlette.responses import JSONResponse
 
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.devices.domain import Device
+from src.devices.exceptions import DeviceDoesNotExistsException
 from src.devices.schemas import DeviceCreateUpdateSchema
 from src.devices.unit_of_work import DeviceUnitOfWork
 
@@ -32,7 +34,10 @@ async def get_device(
             Depends(DeviceUnitOfWork)
         ],
 ):
-    return await device_uow.get(id=id)
+    try:
+        return await device_uow.get(id=id)
+    except DeviceDoesNotExistsException as e:
+        return JSONResponse(status_code=404, content={'detail': e.message})
 
 
 @device_router.put("/{id}", response_model=Device, tags=['Devices'])
@@ -44,7 +49,10 @@ async def update_device(
             Depends(DeviceUnitOfWork)
         ],
 ):
-    return await device_uow.update(id=id, update_object=form_data)
+    try:
+        return await device_uow.update(id=id, update_object=form_data)
+    except DeviceDoesNotExistsException as e:
+        return JSONResponse(status_code=404, content={'detail': e.message})
 
 
 @device_router.delete("/{id}", tags=['Devices'])
@@ -55,4 +63,7 @@ async def delete_device(
             Depends(DeviceUnitOfWork)
         ],
 ):
-    return await device_uow.delete(id=id)
+    try:
+        return await device_uow.delete(id=id)
+    except DeviceDoesNotExistsException:
+        return
