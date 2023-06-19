@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 
 import fastapi
 from fastapi import Depends
@@ -7,7 +7,7 @@ from starlette.responses import JSONResponse
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.projects.domain import Project
 from src.projects.exceptions import ProjectDoesNotExistsException
-from src.projects.schemas import ProjectCreateUpdateSchema
+from src.projects.schemas import ProjectCreateUpdateSchema, ProjectFilterSchema
 from src.projects.unit_of_work import ProjectUnitOfWork
 
 project_router = fastapi.routing.APIRouter(
@@ -15,7 +15,7 @@ project_router = fastapi.routing.APIRouter(
 )
 
 
-@project_router.post("", response_model=Project, tags=['Projects'])
+@project_router.post("/", response_model=Project, tags=['Projects'])
 async def create_project(
         form_data: ProjectCreateUpdateSchema,
         project_uow: Annotated[
@@ -26,7 +26,18 @@ async def create_project(
     return await project_uow.add(**form_data.dict())
 
 
-@project_router.get("/{id}", response_model=Project, tags=['Projects'])
+@project_router.get("/", response_model=List[Project], tags=['Projects'])
+async def get_projects_list(
+        project_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(ProjectUnitOfWork)
+        ],
+        filters: Annotated[ProjectFilterSchema, Depends(ProjectFilterSchema)],
+):
+    return await project_uow.list(**filters.dict())
+
+
+@project_router.get("/{id}/", response_model=Project, tags=['Projects'])
 async def get_project(
         id: int,
         project_uow: Annotated[
@@ -40,7 +51,7 @@ async def get_project(
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
-@project_router.put("/{id}", response_model=Project, tags=['Projects'])
+@project_router.put("/{id}/", response_model=Project, tags=['Projects'])
 async def update_project(
         id: int,
         form_data: ProjectCreateUpdateSchema,
@@ -55,7 +66,7 @@ async def update_project(
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
-@project_router.delete("/{id}", tags=['Projects'])
+@project_router.delete("/{id}/", tags=['Projects'])
 async def delete_project(
         id: int,
         project_uow: Annotated[
