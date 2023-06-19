@@ -2,9 +2,11 @@ from typing import Annotated
 
 import fastapi
 from fastapi import Depends
+from starlette.responses import JSONResponse
 
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.projects.domain import Project
+from src.projects.exceptions import ProjectDoesNotExistsException
 from src.projects.schemas import ProjectCreateUpdateSchema
 from src.projects.unit_of_work import ProjectUnitOfWork
 
@@ -32,7 +34,10 @@ async def get_project(
             Depends(ProjectUnitOfWork)
         ],
 ):
-    return await project_uow.get(id=id)
+    try:
+        return await project_uow.get(id=id)
+    except ProjectDoesNotExistsException as e:
+        return JSONResponse(status_code=404, content={'detail': e.message})
 
 
 @project_router.put("/{id}", response_model=Project, tags=['Projects'])
@@ -44,7 +49,10 @@ async def update_project(
             Depends(ProjectUnitOfWork)
         ],
 ):
-    return await project_uow.update(id=id, update_object=form_data)
+    try:
+        return await project_uow.update(id=id, update_object=form_data)
+    except ProjectDoesNotExistsException as e:
+        return JSONResponse(status_code=404, content={'detail': e.message})
 
 
 @project_router.delete("/{id}", tags=['Projects'])
@@ -55,4 +63,7 @@ async def delete_project(
             Depends(ProjectUnitOfWork)
         ],
 ):
-    return await project_uow.delete(id=id)
+    try:
+        return await project_uow.delete(id=id)
+    except ProjectDoesNotExistsException as e:
+        return
