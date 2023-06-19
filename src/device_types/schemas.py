@@ -7,3 +7,6 @@ class DeviceTypeCreateSchema(BaseModel):
     area: str
     system_loss: str
 
+
+class DeviceTypeFilterSchema(BaseModel):
+    company_id: int
