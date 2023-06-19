@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 
 import fastapi
 from fastapi import Depends
@@ -118,7 +118,7 @@ async def get_user_account(
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
-@account_router.post("/company/", response_model=Account, tags=['Company'])
+@account_router.post("/companies/", response_model=Account, tags=['Company'])
 async def create_company(
         form_data: CompanyRegistrationSchema,
         account_uow: Annotated[
@@ -142,7 +142,22 @@ async def create_company(
 
 
 @account_router.get(
-    '/company/{id}',
+    '/companies/',
+    response_model=List[CompanyAccountSchema],
+    dependencies=[Depends(get_current_active_user)],
+    tags=['Company']
+)
+async def get_list_company_accounts(
+        company_account_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(CompanyAccountUnitOfWork)
+        ],
+):
+    return await company_account_uow.list()
+
+
+@account_router.get(
+    '/companies/{id}',
     response_model=CompanyAccountSchema,
     dependencies=[Depends(get_current_active_user)],
     tags=['Company']
@@ -161,7 +176,7 @@ async def get_company_account(
 
 
 @account_router.put(
-    '/company/{id}',
+    '/companies/{id}',
     response_model=CompanyAccountSchema,
     dependencies=[Depends(get_current_active_user)],
     tags=['Company']

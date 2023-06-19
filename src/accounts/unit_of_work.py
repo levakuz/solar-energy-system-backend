@@ -1,4 +1,4 @@
-from typing import Annotated, NoReturn
+from typing import Annotated, NoReturn, List
 
 from asyncpg import UniqueViolationError
 from fastapi import Depends
@@ -141,3 +141,6 @@ class CompanyAccountUnitOfWork(AbstractUnitOfWork[CompanyAccount]):
 
     async def delete(self, *args, **kwargs) -> NoReturn:
         await self._account_repository.delete(*args, **kwargs)
+
+    async def list(self, *args, **kwargs) -> List[CompanyAccount]:
+        return await self._account_repository.list(*args, **kwargs)
