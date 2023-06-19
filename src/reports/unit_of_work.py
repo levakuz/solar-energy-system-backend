@@ -41,4 +41,7 @@ class ReportUnitOfWork(AbstractUnitOfWork[Report]):
         return await self._report_repository.add(*args, **kwargs)
 
     async def delete(self, *args, **kwargs) -> NoReturn:
-        await self._report_repository.delete(*args, **kwargs)
+        try:
+            await self._report_repository.delete(*args, **kwargs)
+        except DoesNotExist as e:
+            raise ReportDoesNotExistsException
