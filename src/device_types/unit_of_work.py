@@ -41,4 +41,7 @@ class DeviceTypeUnitOfWork(AbstractUnitOfWork[DeviceType]):
         return await self._device_type_repository.add(*args, **kwargs)
 
     async def delete(self, *args, **kwargs) -> NoReturn:
-        await self._device_type_repository.delete(*args, **kwargs)
+        try:
+            await self._device_type_repository.delete(*args, **kwargs)
+        except DoesNotExist as e:
+            raise DeviceTypeDoesNotExistsException
