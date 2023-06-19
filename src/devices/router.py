@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 
 import fastapi
 from fastapi import Depends
@@ -7,7 +7,7 @@ from starlette.responses import JSONResponse
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.devices.domain import Device
 from src.devices.exceptions import DeviceDoesNotExistsException
-from src.devices.schemas import DeviceCreateUpdateSchema
+from src.devices.schemas import DeviceCreateUpdateSchema, DeviceFilterSchema
 from src.devices.unit_of_work import DeviceUnitOfWork
 
 device_router = fastapi.routing.APIRouter(
@@ -15,7 +15,7 @@ device_router = fastapi.routing.APIRouter(
 )
 
 
-@device_router.post("", response_model=Device, tags=['Devices'])
+@device_router.post("/", response_model=Device, tags=['Devices'])
 async def create_device(
         form_data: DeviceCreateUpdateSchema,
         device_uow: Annotated[
@@ -24,6 +24,17 @@ async def create_device(
         ],
 ):
     return await device_uow.add(**form_data.dict())
+
+
+@device_router.get("/", response_model=List[Device], tags=['Devices'])
+async def get_devices_list(
+        device_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(DeviceUnitOfWork)
+        ],
+        filters: Annotated[DeviceFilterSchema, Depends(DeviceFilterSchema)],
+):
+    return await device_uow.list(**filters.dict())
 
 
 @device_router.get("/{id}", response_model=Device, tags=['Devices'])
