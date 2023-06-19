@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 
 import fastapi
 from fastapi import Depends
@@ -7,7 +7,7 @@ from starlette.responses import JSONResponse
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.device_energies.domain import DeviceEnergy
 from src.device_energies.exceptions import DeviceEnergyDoesNotExistsException
-from src.device_energies.schemas import DeviceEnergyCreateSchema
+from src.device_energies.schemas import DeviceEnergyCreateSchema, DeviceEnergyFilterSchema
 from src.device_energies.unit_of_work import DeviceEnergyUnitOfWork
 
 device_energy_router = fastapi.routing.APIRouter(
@@ -15,7 +15,7 @@ device_energy_router = fastapi.routing.APIRouter(
 )
 
 
-@device_energy_router.post("", response_model=DeviceEnergy, tags=['Device Energies'])
+@device_energy_router.post("/", response_model=DeviceEnergy, tags=['Device Energies'])
 async def create_device_energy(
         form_data: DeviceEnergyCreateSchema,
         device_energy_uow: Annotated[
@@ -26,7 +26,18 @@ async def create_device_energy(
     return await device_energy_uow.add(**form_data.dict())
 
 
-@device_energy_router.get("/{id}", response_model=DeviceEnergy, tags=['Device Energies'])
+@device_energy_router.get("/", response_model=List[DeviceEnergy], tags=['Device Energies'])
+async def get_device_energy_list(
+        device_energy_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(DeviceEnergyUnitOfWork)
+        ],
+        filters: Annotated[DeviceEnergyFilterSchema, Depends(DeviceEnergyFilterSchema)],
+):
+    return await device_energy_uow.list(**filters.dict())
+
+
+@device_energy_router.get("/{id}/", response_model=DeviceEnergy, tags=['Device Energies'])
 async def get_device_energy(
         id: int,
         device_energy_uow: Annotated[
@@ -40,7 +51,7 @@ async def get_device_energy(
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
-@device_energy_router.put("/{id}", response_model=DeviceEnergy, tags=['Device Energies'])
+@device_energy_router.put("/{id}/", response_model=DeviceEnergy, tags=['Device Energies'])
 async def update_device_energy(
         id: int,
         form_data: DeviceEnergyCreateSchema,

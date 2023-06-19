@@ -1,5 +1,7 @@
-from pydantic import BaseModel
 from datetime import datetime
+from typing import Optional
+
+from pydantic import BaseModel
 
 
 class DeviceEnergyCreateSchema(BaseModel):
@@ -7,3 +9,6 @@ class DeviceEnergyCreateSchema(BaseModel):
     date: datetime
     value: float
 
+
+class DeviceEnergyFilterSchema(BaseModel):
+    device_id: Optional[int]
