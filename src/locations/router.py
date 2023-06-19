@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, List
 
 import fastapi
 from fastapi import Depends
@@ -16,7 +16,7 @@ locations_router = fastapi.routing.APIRouter(
 )
 
 
-@locations_router.post("", response_model=Location, tags=['Locations'])
+@locations_router.post("/", response_model=Location, tags=['Locations'])
 async def create_location(
         form_data: LocationCreateUpdateSchema,
         location_uow: Annotated[
@@ -27,7 +27,17 @@ async def create_location(
     return await services.create_location(form_data, location_uow)
 
 
-@locations_router.get("/{id}", response_model=Location, tags=['Locations'])
+@locations_router.get("/", response_model=List[Location], tags=['Locations'])
+async def get_locations_list(
+        location_uow: Annotated[
+            AbstractUnitOfWork[Location],
+            Depends(LocationUnitOfWork)
+        ],
+):
+    return await location_uow.list()
+
+
+@locations_router.get("/{id}/", response_model=Location, tags=['Locations'])
 async def get_location(
         id: int,
         location_uow: Annotated[
@@ -41,7 +51,7 @@ async def get_location(
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
-@locations_router.put("/{id}", response_model=Location, tags=['Locations'])
+@locations_router.put("/{id}/", response_model=Location, tags=['Locations'])
 async def update_location(
         id: int,
         form_data: LocationCreateUpdateSchema,
@@ -56,7 +66,7 @@ async def update_location(
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
-@locations_router.delete("/{id}", tags=['Locations'])
+@locations_router.delete("/{id}/", tags=['Locations'])
 async def delete_location(
         id: int,
         location_uow: Annotated[

@@ -1,4 +1,4 @@
-from typing import Annotated, NoReturn
+from typing import Annotated, NoReturn, List
 
 from fastapi import Depends
 from pydantic import BaseModel
@@ -45,3 +45,6 @@ class LocationUnitOfWork(AbstractUnitOfWork[Location]):
             await self._location_repository.delete(*args, **kwargs)
         except DoesNotExist as e:
             raise LocationDoesNotExistsException
+
+    async def list(self, *args, **kwargs) -> List[Location]:
+        return await self._location_repository.list(*args, **kwargs)
