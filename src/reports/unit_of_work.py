@@ -1,4 +1,4 @@
-from typing import Annotated, NoReturn
+from typing import Annotated, NoReturn, List
 
 from fastapi import Depends
 from pydantic import BaseModel
@@ -45,3 +45,6 @@ class ReportUnitOfWork(AbstractUnitOfWork[Report]):
             await self._report_repository.delete(*args, **kwargs)
         except DoesNotExist as e:
             raise ReportDoesNotExistsException
+
+    async def list(self, *args, **kwargs) -> List[Report]:
+        return await self._report_repository.list(*args, **kwargs)
