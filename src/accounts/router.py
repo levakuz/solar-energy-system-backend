@@ -31,14 +31,14 @@ account_router = fastapi.routing.APIRouter(
 )
 
 
-@account_router.get("/me/", response_model=Account)
+@account_router.get("/me", response_model=Account)
 async def read_users_me(
         current_user: Annotated[Account, Depends(get_current_active_user)]
 ):
     return current_user
 
 
-@account_router.post("/user/", response_model=Account, tags=['User'])
+@account_router.post("/users", response_model=Account, tags=['Users'])
 async def create_user(
         form_data: UserRegistrationSchema,
         account_uow: Annotated[
@@ -62,7 +62,7 @@ async def create_user(
     '/{id}',
     response_model=AccountSchema,
     dependencies=[Depends(get_current_active_user)],
-    tags=['Account']
+    tags=['Accounts']
 )
 async def delete_account(
         id: int,
@@ -81,7 +81,7 @@ async def delete_account(
     '/user/{id}',
     response_model=UserAccountSchema,
     dependencies=[Depends(get_current_active_user)],
-    tags=['User']
+    tags=['Users']
 )
 async def update_user_account(
         id: int,
@@ -99,10 +99,10 @@ async def update_user_account(
 
 
 @account_router.get(
-    '/user/{id}',
+    '/users/{id}',
     response_model=UserAccountSchema,
     dependencies=[Depends(get_current_active_user)],
-    tags=['User']
+    tags=['Users']
 )
 async def get_user_account(
         id: int,
@@ -118,7 +118,7 @@ async def get_user_account(
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
-@account_router.post("/companies/", response_model=Account, tags=['Company'])
+@account_router.post("/companies", response_model=Account, tags=['Companies'])
 async def create_company(
         form_data: CompanyRegistrationSchema,
         account_uow: Annotated[
@@ -142,10 +142,10 @@ async def create_company(
 
 
 @account_router.get(
-    '/companies/',
+    '/companies',
     response_model=List[CompanyAccountSchema],
     dependencies=[Depends(get_current_active_user)],
-    tags=['Company']
+    tags=['Companies']
 )
 async def get_list_company_accounts(
         company_account_uow: Annotated[
@@ -160,7 +160,7 @@ async def get_list_company_accounts(
     '/companies/{id}',
     response_model=CompanyAccountSchema,
     dependencies=[Depends(get_current_active_user)],
-    tags=['Company']
+    tags=['Companies']
 )
 async def get_company_account(
         id: int,
@@ -179,7 +179,7 @@ async def get_company_account(
     '/companies/{id}',
     response_model=CompanyAccountSchema,
     dependencies=[Depends(get_current_active_user)],
-    tags=['Company']
+    tags=['Companies']
 )
 async def update_company_account(
         id: int,

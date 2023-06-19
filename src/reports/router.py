@@ -15,7 +15,7 @@ report_router = fastapi.routing.APIRouter(
 )
 
 
-@report_router.post("/", response_model=Report, tags=['Reports'])
+@report_router.post("", response_model=Report, tags=['Reports'])
 async def create_report(
         form_data: ReportCreateUpdateSchema,
         report_uow: Annotated[
@@ -26,7 +26,7 @@ async def create_report(
     return await report_uow.add(**form_data.dict())
 
 
-@report_router.get("/", response_model=List[Report], tags=['Reports'])
+@report_router.get("", response_model=List[Report], tags=['Reports'])
 async def get_reports_list(
         report_uow: Annotated[
             AbstractUnitOfWork,
@@ -36,7 +36,7 @@ async def get_reports_list(
     return await report_uow.list()
 
 
-@report_router.get("/{id}/", response_model=Report, tags=['Reports'])
+@report_router.get("/{id}", response_model=Report, tags=['Reports'])
 async def get_report(
         id: int,
         report_uow: Annotated[
@@ -50,7 +50,7 @@ async def get_report(
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
-@report_router.put("/{id}/", response_model=Report, tags=['Reports'])
+@report_router.put("/{id}", response_model=Report, tags=['Reports'])
 async def update_report(
         id: int,
         form_data: ReportCreateUpdateSchema,
@@ -65,7 +65,7 @@ async def update_report(
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
-@report_router.delete("/{id}/", tags=['Reports'])
+@report_router.delete("/{id}", tags=['Reports'])
 async def delete_report(
         id: int,
         report_uow: Annotated[

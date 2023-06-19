@@ -15,7 +15,7 @@ device_router = fastapi.routing.APIRouter(
 )
 
 
-@device_router.post("/", response_model=Device, tags=['Devices'])
+@device_router.post("", response_model=Device, tags=['Devices'])
 async def create_device(
         form_data: DeviceCreateUpdateSchema,
         device_uow: Annotated[
@@ -26,7 +26,7 @@ async def create_device(
     return await device_uow.add(**form_data.dict())
 
 
-@device_router.get("/", response_model=List[Device], tags=['Devices'])
+@device_router.get("", response_model=List[Device], tags=['Devices'])
 async def get_devices_list(
         device_uow: Annotated[
             AbstractUnitOfWork,
