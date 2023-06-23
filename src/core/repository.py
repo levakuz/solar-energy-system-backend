@@ -71,7 +71,7 @@ class TortoiseRepository(AbstractRepository):
     @process_filter
     async def list(self, limit: int = 0, offset: int = 0, *args, **kwargs) -> List[T]:
         db_models = QuerySet(self.domain.__config__.db_model)
-        if limit and offset:
+        if limit or offset:
             db_models = db_models.filter(*args, **kwargs)
             db_models = await db_models.limit(limit).offset(offset)
         else:
@@ -84,8 +84,6 @@ class TortoiseRepository(AbstractRepository):
     async def count(self, limit: int = 0, offset: int = 0, *args, **kwargs) -> int:
         db_models = QuerySet(self.domain.__config__.db_model)
         db_models = db_models.filter(*args, **kwargs)
-        if limit and offset:
-            db_models = await db_models.limit(limit).offset(offset)
         return await db_models.count()
 
 
@@ -98,7 +96,7 @@ class BeanieRepository(AbstractRepository):
         self.domain = domain
 
     async def get(self, *args, **kwargs) -> T | None:
-        db_model = await self.domain.__config__.db_model.find_one(*args, **kwargs)
+        db_model = await self.domain.__config__.db_model.find_one(kwargs)
         if db_model is not None:
             return self.domain.parse_obj(db_model.__dict__)
         return db_model
