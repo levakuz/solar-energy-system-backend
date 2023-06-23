@@ -4,6 +4,7 @@ import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+from src.core.pagination import Paginator
 from src.core.schemas import PaginationRequestSchema, PaginationSchema
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.device_energies.domain import DeviceEnergy
@@ -36,7 +37,10 @@ async def get_device_energy_list(
         filters: Annotated[DeviceEnergyFilterSchema, Depends(DeviceEnergyFilterSchema)],
         pagination: Annotated[PaginationRequestSchema, Depends(PaginationRequestSchema)]
 ):
-    return await device_energy_uow.list(**filters.dict(), **pagination.dict())
+    devices = await device_energy_uow.list(**filters.dict(), **pagination.dict())
+    count = await device_energy_uow.count(**filters.dict())
+    paginator = Paginator[DeviceEnergy](models_list=devices, count=count, **pagination.dict())
+    return await paginator.get_response()
 
 
 @device_energy_router.get("/{id}", response_model=DeviceEnergy, tags=['Device Energies'])
