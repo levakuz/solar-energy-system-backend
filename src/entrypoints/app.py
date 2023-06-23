@@ -6,9 +6,11 @@ from src.accounts.exceptions import InactiveUserException
 from src.accounts.router import account_router
 from src.auth.router import router as auth_router
 from src.core.middlewares.pagination import PaginationMiddleware
-from src.database import init_database
+from src.core.scheduler import service_scheduler
+from src.database import init_postgres_database, init_mongodb_database
 from src.device_energies.router import device_energy_router
 from src.device_types.router import device_type_router
+from src.location_weather.router import location_weather_router
 from src.devices.router import device_router
 from src.locations.router import locations_router
 from src.projects.router import project_router
@@ -33,8 +35,11 @@ app.include_router(project_router, prefix='/api/v1')
 app.include_router(report_router, prefix='/api/v1')
 app.include_router(device_router, prefix='/api/v1')
 app.include_router(device_energy_router, prefix='/api/v1')
+app.include_router(location_weather_router, prefix='/api/v1')
 
-app.add_event_handler('startup', init_database)
+app.add_event_handler('startup', init_postgres_database)
+app.add_event_handler('startup', init_mongodb_database)
+app.add_event_handler('startup', service_scheduler.start)
 
 
 @app.exception_handler(InactiveUserException)

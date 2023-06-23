@@ -19,6 +19,10 @@ passlib = { extras = ["bcrypt"], version = "^1.7.4" }
 types-passlib = "^1.7.7.12"
 types-python-jose = "^3.3.4.7"
 python-multipart = "^0.0.6"
+apscheduler = "^3.10.1"
+pymongo = "^4.3.3"
+httpx = "^0.24.1"
+beanie = "^1.19.2"
 pydantic = {extras = ["dotenv"], version = "^1.10.9"}
 
 

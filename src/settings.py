@@ -1,4 +1,56 @@
-from pydantic import BaseSettings, Field
+from pydantic import BaseSettings
+
+
+class MongoSettings(BaseSettings):
+    MONGO_IP: str = 'localhost'
+    MONGO_USER: str = 'admin'
+    MONGO_PORT: int = 27017
+    MONGO_PASSWORD: str = 'admin'
+    MONGO_SCHEDULE_TASKS_DB_NAME: str = 'scheduler'
+    MONGO_SCHEDULE_TASKS_COLLECTION_NAME: str = 'jobs'
+    MONGO_WEATHER_DATA_DB_NAME: str = 'weather_data'
+    SCHEDULER_URL: str = f'mongodb://' \
+                         f'{MONGO_USER}:' \
+                         f'{MONGO_PASSWORD}@' \
+                         f'{MONGO_IP}:' \
+                         f'{MONGO_PORT}' \
+                         f'/?authSource=admin&directConnection=true&ssl=false'
+
+    BEANIE_URL: str = f'mongodb://' \
+                      f'{MONGO_USER}:' \
+                      f'{MONGO_PASSWORD}@' \
+                      f'{MONGO_IP}:' \
+                      f'{MONGO_PORT}/' \
+                      f'{MONGO_WEATHER_DATA_DB_NAME}' \
+                      f'?authSource=admin&directConnection=true&ssl=false'
+
+    class Config:
+        fields = {
+            'MONGO_IP': {
+                'env': 'MONGO_IP'
+            },
+            'MONGO_USER': {
+                'env': 'MONGO_USER'
+            },
+            'MONGO_PORT': {
+                'env': 'MONGO_PORT'
+            },
+            'MONGO_PASSWORD': {
+                'env': 'MONGO_PASSWORD'
+            },
+            'MONGO_SCHEDULE_TASKS_DB_NAME': {
+                'env': 'MONGO_SCHEDULE_TASKS_DB_NAME'
+            },
+            'MONGO_SCHEDULE_TASKS_COLLECTION_NAME': {
+                'env': 'MONGO_SCHEDULE_TASKS_COLLECTION_NAME'
+            },
+            'MONGO_WEATHER_DATA_DB_NAME': {
+                'env': 'MONGO_WEATHER_DATA_DB_NAME'
+            },
+            'MONGO_WEATHER_DATA_COLLECTION_NAME': {
+                'env': 'MONGO_WEATHER_DATA_COLLECTION_NAME'
+            },
+        }
 
 
 class Settings(BaseSettings):
@@ -29,6 +81,8 @@ class Settings(BaseSettings):
                 "default_connection": "default",
             },
         }}
+
+    MONGO_SETTINGS: MongoSettings = MongoSettings()
 
     class Config:
         fields = {
