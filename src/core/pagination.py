@@ -38,7 +38,10 @@ class Paginator(Generic[T]):
             return str(self.request.url.include_query_params(offset=self.offset - 1))
 
     def _get_last_page(self):
-        return str(self.request.url.include_query_params(offset=self.count // self.limit - 1))
+        if self._total_pages != 1:
+            return str(self.request.url.include_query_params(limit=self.limit, offset=self._total_pages - 1))
+        else:
+            return str(str(self.request.url.include_query_params(limit=self.limit, offset=self._total_pages)))
 
     async def _get_pagination_section(self) -> PaginationSectionSchema:
         return PaginationSectionSchema(
