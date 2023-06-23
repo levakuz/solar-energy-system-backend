@@ -1,4 +1,5 @@
 from tortoise.fields import FloatField, ForeignKeyField, DatetimeField
+
 from src.core.models import BaseModel
 
 
@@ -7,9 +8,9 @@ class DeviceEnergy(BaseModel):
     date = DatetimeField()
     value = FloatField(null=True)
 
-
     class Meta:
         table = "device_energy"
+        unique_together = (("device", "date"),)
 
     def __repr__(self):
         return f'DeviceEnergy {self.id}'
