@@ -51,6 +51,8 @@ class Settings(BaseSettings):
                 'env': 'ACCESS_TOKEN_EXPIRE_MINUTES'
             }
         }
+        env_file = '.env'
+        env_file_encoding = 'utf-8'
 
 
 settings: Settings = Settings()
