@@ -4,6 +4,7 @@ import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+from src.core.pagination import Paginator
 from src.core.schemas import PaginationRequestSchema, PaginationSchema
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.device_types.domain import DeviceType
@@ -36,7 +37,10 @@ async def device_types_list(
         filters: Annotated[DeviceTypeFilterSchema, Depends(DeviceTypeFilterSchema)],
         pagination: Annotated[PaginationRequestSchema, Depends(PaginationRequestSchema)]
 ):
-    return await device_type_uow.list(**filters.dict(), **pagination.dict())
+    devices = await device_type_uow.list(**filters.dict(), **pagination.dict())
+    count = await device_type_uow.count(**filters.dict())
+    paginator = Paginator[DeviceType](models_list=devices, count=count, **pagination.dict())
+    return await paginator.get_response()
 
 
 @device_type_router.get("/{id}", response_model=DeviceType, tags=['Device Types'])
