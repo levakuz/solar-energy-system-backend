@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Generic, List, NoReturn, Callable, Tuple
+from typing import TypeVar, Generic, List, NoReturn, Callable
 
 from pydantic import BaseModel as PydanticModel, BaseModel
 from tortoise.queryset import QuerySet
@@ -81,6 +81,7 @@ class TortoiseRepository(AbstractRepository):
     async def update(self, update_object: PydanticModel, **kwargs) -> T:
         return await self.domain.__config__.db_model.get(**kwargs).update(**update_object.dict())
 
+    @process_filter
     async def count(self, limit: int = 0, offset: int = 0, *args, **kwargs) -> int:
         db_models = QuerySet(self.domain.__config__.db_model)
         db_models = db_models.filter(*args, **kwargs)
