@@ -4,6 +4,7 @@ import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+from src.core.schemas import PaginationRequestSchema, PaginationSchema
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.device_energies.domain import DeviceEnergy
 from src.device_energies.exceptions import DeviceEnergyDoesNotExistsException
@@ -26,15 +27,16 @@ async def create_device_energy(
     return await device_energy_uow.add(**form_data.dict())
 
 
-@device_energy_router.get("", response_model=List[DeviceEnergy], tags=['Device Energies'])
+@device_energy_router.get("", response_model=PaginationSchema[DeviceEnergy], tags=['Device Energies'])
 async def get_device_energy_list(
         device_energy_uow: Annotated[
             AbstractUnitOfWork,
             Depends(DeviceEnergyUnitOfWork)
         ],
         filters: Annotated[DeviceEnergyFilterSchema, Depends(DeviceEnergyFilterSchema)],
+        pagination: Annotated[PaginationRequestSchema, Depends(PaginationRequestSchema)]
 ):
-    return await device_energy_uow.list(**filters.dict())
+    return await device_energy_uow.list(**filters.dict(), **pagination.dict())
 
 
 @device_energy_router.get("/{id}", response_model=DeviceEnergy, tags=['Device Energies'])

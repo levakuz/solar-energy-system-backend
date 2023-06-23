@@ -1,9 +1,10 @@
-from typing import Annotated, List
+from typing import Annotated
 
 import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+from src.core.schemas import PaginationRequestSchema, PaginationSchema
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.locations import services
 from src.locations.domain import Location
@@ -27,14 +28,15 @@ async def create_location(
     return await services.create_location(form_data, location_uow)
 
 
-@locations_router.get("", response_model=List[Location], tags=['Locations'])
+@locations_router.get("", response_model=PaginationSchema[Location], tags=['Locations'])
 async def get_locations_list(
         location_uow: Annotated[
             AbstractUnitOfWork[Location],
             Depends(LocationUnitOfWork)
         ],
+        pagination: Annotated[PaginationRequestSchema, Depends(PaginationRequestSchema)],
 ):
-    return await location_uow.list()
+    return await location_uow.list(**pagination.dict())
 
 
 @locations_router.get("/{id}", response_model=Location, tags=['Locations'])

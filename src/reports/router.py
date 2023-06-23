@@ -1,9 +1,10 @@
-from typing import Annotated, List
+from typing import Annotated
 
 import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+from src.core.schemas import PaginationSchema, PaginationRequestSchema
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.reports.domain import Report
 from src.reports.exceptions import ReportDoesNotExistsException
@@ -26,14 +27,15 @@ async def create_report(
     return await report_uow.add(**form_data.dict())
 
 
-@report_router.get("", response_model=List[Report], tags=['Reports'])
+@report_router.get("", response_model=PaginationSchema[Report], tags=['Reports'])
 async def get_reports_list(
         report_uow: Annotated[
             AbstractUnitOfWork,
             Depends(ReportUnitOfWork)
         ],
+        pagination: Annotated[PaginationRequestSchema, Depends(PaginationRequestSchema)],
 ):
-    return await report_uow.list()
+    return await report_uow.list(**pagination.dict())
 
 
 @report_router.get("/{id}", response_model=Report, tags=['Reports'])

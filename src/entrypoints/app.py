@@ -5,13 +5,14 @@ from starlette.responses import JSONResponse
 from src.accounts.exceptions import InactiveUserException
 from src.accounts.router import account_router
 from src.auth.router import router as auth_router
-from src.device_types.router import device_type_router
+from src.core.middlewares.pagination import PaginationMiddleware
 from src.database import init_database
+from src.device_energies.router import device_energy_router
+from src.device_types.router import device_type_router
+from src.devices.router import device_router
 from src.locations.router import locations_router
 from src.projects.router import project_router
 from src.reports.router import report_router
-from src.devices.router import device_router
-from src.device_energies.router import device_energy_router
 
 app = FastAPI()
 
@@ -22,6 +23,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.add_middleware(PaginationMiddleware)
 
 app.include_router(auth_router, prefix='/api/v1')
 app.include_router(account_router, prefix='/api/v1')

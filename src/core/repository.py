@@ -1,7 +1,8 @@
 import abc
-from typing import TypeVar, Generic, List, NoReturn, Callable
+from typing import TypeVar, Generic, List, NoReturn, Callable, Tuple
 
 from pydantic import BaseModel as PydanticModel, BaseModel
+from tortoise.queryset import QuerySet
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -38,6 +39,7 @@ def process_filter(func: Callable):
             if kwargs[key] is None:
                 kwargs.pop(key)
         return await func(*args, **kwargs)
+
     return wrapper
 
 
@@ -63,9 +65,12 @@ class TortoiseRepository(AbstractRepository):
         return self.domain.parse_obj(db_model.__dict__)
 
     @process_filter
-    async def list(self, *args, **kwargs) -> List[T]:
-        db_models = await self.domain.__config__.db_model.filter(*args, **kwargs)
-        return [self.domain.parse_obj(model.__dict__) for model in db_models]
+    async def list(self, limit: int = 10, offset: int = 0, *args, **kwargs) -> Tuple[List[T], int]:
+        db_models = QuerySet(self.domain.__config__.db_model)
+        db_models = db_models.filter(*args, **kwargs)
+        count = await db_models.count()
+        db_models = await db_models.limit(limit).offset(offset)
+        return [self.domain.parse_obj(model.__dict__) for model in db_models], count
 
     async def update(self, update_object: PydanticModel, **kwargs) -> T:
         return await self.domain.__config__.db_model.get(**kwargs).update(**update_object.dict())

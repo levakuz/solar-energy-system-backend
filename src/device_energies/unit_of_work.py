@@ -1,11 +1,13 @@
-from typing import Annotated, NoReturn, List
+from typing import Annotated, NoReturn
 
 from fastapi import Depends
 from pydantic import BaseModel
 from tortoise.exceptions import DoesNotExist
 
+from src.core.pagination import Paginator
 from src.core.repository import TortoiseRepository, AbstractRepository
 from src.core.repository_factory import RepositoryFactory
+from src.core.schemas import PaginationSchema
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.device_energies.domain import DeviceEnergy
 from src.device_energies.exceptions import DeviceEnergyDoesNotExistsException
@@ -46,5 +48,9 @@ class DeviceEnergyUnitOfWork(AbstractUnitOfWork[DeviceEnergy]):
         except DoesNotExist as e:
             raise DeviceEnergyDoesNotExistsException
 
-    async def list(self, *args, **kwargs) -> List[DeviceEnergy]:
-        return await self._device_energy_repository.list(*args, **kwargs)
+    async def list(self, *args, **kwargs) -> PaginationSchema[DeviceEnergy]:
+        limit = kwargs.pop('limit', 10)
+        offset = kwargs.pop('offset', 0)
+        devices, count = await self._device_energy_repository.list(limit=limit, offset=offset, *args, **kwargs)
+        paginator = Paginator[DeviceEnergy](limit=limit, offset=offset, models_list=devices, count=count)
+        return await paginator.get_response()

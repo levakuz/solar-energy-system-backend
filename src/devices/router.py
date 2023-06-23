@@ -4,6 +4,7 @@ import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+from src.core.schemas import PaginationSchema, PaginationRequestSchema
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.devices.domain import Device
 from src.devices.exceptions import DeviceDoesNotExistsException
@@ -26,15 +27,16 @@ async def create_device(
     return await device_uow.add(**form_data.dict())
 
 
-@device_router.get("", response_model=List[Device], tags=['Devices'])
+@device_router.get("", response_model=PaginationSchema[Device], tags=['Devices'])
 async def get_devices_list(
         device_uow: Annotated[
             AbstractUnitOfWork,
             Depends(DeviceUnitOfWork)
         ],
         filters: Annotated[DeviceFilterSchema, Depends(DeviceFilterSchema)],
+        pagination: Annotated[PaginationRequestSchema, Depends(PaginationRequestSchema)],
 ):
-    return await device_uow.list(**filters.dict())
+    return await device_uow.list(**filters.dict(), **pagination.dict())
 
 
 @device_router.get("/{id}", response_model=Device, tags=['Devices'])
