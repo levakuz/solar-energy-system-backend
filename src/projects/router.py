@@ -1,9 +1,10 @@
-from typing import Annotated, List
+from typing import Annotated
 
 import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+from src.core.schemas import PaginationRequestSchema, PaginationSchema
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.projects.domain import Project
 from src.projects.exceptions import ProjectDoesNotExistsException
@@ -26,15 +27,16 @@ async def create_project(
     return await project_uow.add(**form_data.dict())
 
 
-@project_router.get("", response_model=List[Project], tags=['Projects'])
+@project_router.get("", response_model=PaginationSchema[Project], tags=['Projects'])
 async def get_projects_list(
         project_uow: Annotated[
             AbstractUnitOfWork,
             Depends(ProjectUnitOfWork)
         ],
         filters: Annotated[ProjectFilterSchema, Depends(ProjectFilterSchema)],
+        pagination: Annotated[PaginationRequestSchema, Depends(PaginationRequestSchema)],
 ):
-    return await project_uow.list(**filters.dict())
+    return await project_uow.list(**filters.dict(), **pagination.dict())
 
 
 @project_router.get("/{id}", response_model=Project, tags=['Projects'])
