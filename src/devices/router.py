@@ -1,9 +1,10 @@
-from typing import Annotated, List
+from typing import Annotated
 
 import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+from src.core.pagination import Paginator
 from src.core.schemas import PaginationSchema, PaginationRequestSchema
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.devices.domain import Device
@@ -20,7 +21,7 @@ device_router = fastapi.routing.APIRouter(
 async def create_device(
         form_data: DeviceCreateUpdateSchema,
         device_uow: Annotated[
-            AbstractUnitOfWork,
+            AbstractUnitOfWork[Device],
             Depends(DeviceUnitOfWork)
         ],
 ):
@@ -30,20 +31,23 @@ async def create_device(
 @device_router.get("", response_model=PaginationSchema[Device], tags=['Devices'])
 async def get_devices_list(
         device_uow: Annotated[
-            AbstractUnitOfWork,
+            AbstractUnitOfWork[Device],
             Depends(DeviceUnitOfWork)
         ],
         filters: Annotated[DeviceFilterSchema, Depends(DeviceFilterSchema)],
         pagination: Annotated[PaginationRequestSchema, Depends(PaginationRequestSchema)],
 ):
-    return await device_uow.list(**filters.dict(), **pagination.dict())
+    devices = await device_uow.list(**filters.dict(), **pagination.dict())
+    count = await device_uow.count(**filters.dict(), **pagination.dict())
+    paginator = Paginator[Device](models_list=devices, count=count, **pagination.dict())
+    return await paginator.get_response()
 
 
 @device_router.get("/{id}", response_model=Device, tags=['Devices'])
 async def get_device(
         id: int,
         device_uow: Annotated[
-            AbstractUnitOfWork,
+            AbstractUnitOfWork[Device],
             Depends(DeviceUnitOfWork)
         ],
 ):
@@ -58,7 +62,7 @@ async def update_device(
         id: int,
         form_data: DeviceCreateUpdateSchema,
         device_uow: Annotated[
-            AbstractUnitOfWork,
+            AbstractUnitOfWork[Device],
             Depends(DeviceUnitOfWork)
         ],
 ):
@@ -72,7 +76,7 @@ async def update_device(
 async def delete_device(
         id: int,
         device_uow: Annotated[
-            AbstractUnitOfWork,
+            AbstractUnitOfWork[Device],
             Depends(DeviceUnitOfWork)
         ],
 ):

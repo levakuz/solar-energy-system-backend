@@ -1,13 +1,11 @@
-from typing import Annotated, NoReturn
+from typing import Annotated, NoReturn, List
 
 from fastapi import Depends
 from pydantic import BaseModel
 from tortoise.exceptions import DoesNotExist
 
-from src.core.pagination import Paginator
 from src.core.repository import TortoiseRepository, AbstractRepository
 from src.core.repository_factory import RepositoryFactory
-from src.core.schemas import PaginationSchema
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.devices.domain import Device
 from src.devices.exceptions import DeviceDoesNotExistsException
@@ -48,9 +46,8 @@ class DeviceUnitOfWork(AbstractUnitOfWork[Device]):
         except DoesNotExist as e:
             raise DeviceDoesNotExistsException
 
-    async def list(self, *args, **kwargs) -> PaginationSchema[Device]:
-        limit = kwargs.pop('limit', None)
-        offset = kwargs.pop('offset', None)
-        devices, count = await self._device_repository.list(limit=limit, offset=offset, *args, **kwargs)
-        paginator = Paginator[Device](limit=limit, offset=offset, models_list=devices, count=count)
-        return await paginator.get_response()
+    async def list(self, *args, **kwargs) -> List[Device]:
+        return await self._device_repository.list(*args, **kwargs)
+
+    async def count(self, *args, **kwargs) -> int:
+        return await self._device_repository.count(*args, **kwargs)

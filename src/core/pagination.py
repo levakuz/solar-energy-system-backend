@@ -1,12 +1,11 @@
 from functools import cached_property
 from typing import TypeVar, Generic, List
 
-from tortoise import Model
-
 from src.core.middlewares.pagination import request_object
+from src.core.models import BaseModel
 from src.core.schemas import PaginationSectionSchema, PaginationSchema
 
-T = TypeVar("T", bound=Model)
+T = TypeVar("T", bound=BaseModel)
 
 
 class Paginator(Generic[T]):

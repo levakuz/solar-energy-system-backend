@@ -4,6 +4,7 @@ import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+from src.core.pagination import Paginator
 from src.core.schemas import PaginationRequestSchema, PaginationSchema
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.locations import services
@@ -37,7 +38,10 @@ async def get_locations_list(
         ],
         pagination: Annotated[PaginationRequestSchema, Depends(PaginationRequestSchema)],
 ):
-    return await location_uow.list(**pagination.dict())
+    devices = await location_uow.list(**pagination.dict())
+    count = await location_uow.count()
+    paginator = Paginator[Location](models_list=devices, count=count, **pagination.dict())
+    return await paginator.get_response()
 
 
 @locations_router.get("/{id}", response_model=Location, tags=['Locations'])

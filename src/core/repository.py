@@ -1,5 +1,5 @@
 import abc
-from typing import TypeVar, Generic, List, NoReturn, Callable, Tuple
+from typing import TypeVar, Generic, List, NoReturn, Callable
 
 from pydantic import BaseModel as PydanticModel, BaseModel
 from tortoise.queryset import QuerySet
@@ -30,6 +30,10 @@ class AbstractRepository(Generic[T], abc.ABC):
 
     @abc.abstractmethod
     async def update(self, update_object: PydanticModel, **kwargs) -> T:
+        raise NotImplementedError
+
+    @abc.abstractmethod
+    async def count(self, *args, **kwargs):
         raise NotImplementedError
 
 
@@ -65,15 +69,23 @@ class TortoiseRepository(AbstractRepository):
         return self.domain.parse_obj(db_model.__dict__)
 
     @process_filter
-    async def list(self, limit: int = 10, offset: int = 0, *args, **kwargs) -> Tuple[List[T], int]:
+    async def list(self, limit: int = 0, offset: int = 0, *args, **kwargs) -> List[T]:
         db_models = QuerySet(self.domain.__config__.db_model)
-        db_models = db_models.filter(*args, **kwargs)
-        count = await db_models.count()
-        db_models = await db_models.limit(limit).offset(offset)
-        return [self.domain.parse_obj(model.__dict__) for model in db_models], count
+        if limit or offset:
+            db_models = db_models.filter(*args, **kwargs)
+            db_models = await db_models.limit(limit).offset(offset)
+        else:
+            db_models = await db_models.filter(*args, **kwargs)
+        return [self.domain.parse_obj(model.__dict__) for model in db_models]
 
     async def update(self, update_object: PydanticModel, **kwargs) -> T:
         return await self.domain.__config__.db_model.get(**kwargs).update(**update_object.dict())
+
+    @process_filter
+    async def count(self, limit: int = 0, offset: int = 0, *args, **kwargs) -> int:
+        db_models = QuerySet(self.domain.__config__.db_model)
+        db_models = db_models.filter(*args, **kwargs)
+        return await db_models.count()
 
 
 class BeanieRepository(AbstractRepository):
@@ -85,7 +97,7 @@ class BeanieRepository(AbstractRepository):
         self.domain = domain
 
     async def get(self, *args, **kwargs) -> T | None:
-        db_model = await self.domain.__config__.db_model.find_one(*args, **kwargs)
+        db_model = await self.domain.__config__.db_model.find_one(kwargs)
         if db_model is not None:
             return self.domain.parse_obj(db_model.__dict__)
         return db_model
@@ -104,4 +116,5 @@ class BeanieRepository(AbstractRepository):
     async def update(self, update_object: PydanticModel, **kwargs) -> T:
         return await self.domain.__config__.db_model.find_one(**kwargs).update(**update_object.dict())
 
-
+    async def count(self, *args, **kwargs):
+        pass
