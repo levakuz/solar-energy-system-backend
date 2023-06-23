@@ -32,6 +32,10 @@ class AbstractRepository(Generic[T], abc.ABC):
     async def update(self, update_object: PydanticModel, **kwargs) -> T:
         raise NotImplementedError
 
+    @abc.abstractmethod
+    async def count(self, *args, **kwargs):
+        raise NotImplementedError
+
 
 def process_filter(func: Callable):
     async def wrapper(*args, **kwargs):
@@ -65,15 +69,24 @@ class TortoiseRepository(AbstractRepository):
         return self.domain.parse_obj(db_model.__dict__)
 
     @process_filter
-    async def list(self, limit: int = 10, offset: int = 0, *args, **kwargs) -> Tuple[List[T], int]:
+    async def list(self, limit: int = 0, offset: int = 0, *args, **kwargs) -> List[T]:
         db_models = QuerySet(self.domain.__config__.db_model)
-        db_models = db_models.filter(*args, **kwargs)
-        count = await db_models.count()
-        db_models = await db_models.limit(limit).offset(offset)
-        return [self.domain.parse_obj(model.__dict__) for model in db_models], count
+        if limit and offset:
+            db_models = db_models.filter(*args, **kwargs)
+            db_models = await db_models.limit(limit).offset(offset)
+        else:
+            db_models = await db_models.filter(*args, **kwargs)
+        return [self.domain.parse_obj(model.__dict__) for model in db_models]
 
     async def update(self, update_object: PydanticModel, **kwargs) -> T:
         return await self.domain.__config__.db_model.get(**kwargs).update(**update_object.dict())
+
+    async def count(self, limit: int = 0, offset: int = 0, *args, **kwargs) -> int:
+        db_models = QuerySet(self.domain.__config__.db_model)
+        db_models = db_models.filter(*args, **kwargs)
+        if limit and offset:
+            db_models = await db_models.limit(limit).offset(offset)
+        return await db_models.count()
 
 
 class BeanieRepository(AbstractRepository):
@@ -104,4 +117,5 @@ class BeanieRepository(AbstractRepository):
     async def update(self, update_object: PydanticModel, **kwargs) -> T:
         return await self.domain.__config__.db_model.find_one(**kwargs).update(**update_object.dict())
 
-
+    async def count(self, *args, **kwargs):
+        pass

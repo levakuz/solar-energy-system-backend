@@ -22,3 +22,6 @@ class AbstractUnitOfWork(Generic[T], abc.ABC):
 
     async def list(self, *args, **kwargs) -> List[T]:
         raise NotImplementedError
+
+    async def count(self, *args, **kwargs) -> int:
+        raise NotImplementedError
