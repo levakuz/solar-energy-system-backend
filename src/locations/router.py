@@ -8,8 +8,9 @@ from src.core.schemas import PaginationRequestSchema, PaginationSchema
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.locations import services
 from src.locations.domain import Location
-from src.locations.exceptions import LocationDoesNotExistsException
-from src.locations.schemas import LocationCreateUpdateSchema
+from src.locations.exceptions import LocationDoesNotExistsException, GeocodingNotFoundException
+from src.locations.schemas import LocationCreateUpdateSchema, LocationGeocodingResponseSchema
+from src.locations.services import get_location_by_name
 from src.locations.unit_of_work import LocationUnitOfWork
 
 locations_router = fastapi.routing.APIRouter(
@@ -80,3 +81,17 @@ async def delete_location(
         return await location_uow.delete(id=id)
     except LocationDoesNotExistsException:
         return
+
+
+@locations_router.get("/geocoding/", tags=['Locations'], response_model=LocationGeocodingResponseSchema)
+async def get_location_by_coordinates(
+        name: str,
+        location_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(LocationUnitOfWork)
+        ],
+):
+    try:
+        return await get_location_by_name(name)
+    except GeocodingNotFoundException as e:
+        return JSONResponse(status_code=404, content={'detail': e.message})
