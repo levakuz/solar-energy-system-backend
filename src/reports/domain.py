@@ -1,5 +1,7 @@
-from pydantic import BaseModel
 from datetime import datetime
+
+from pydantic import BaseModel
+
 from .models import Report as ReportDatabaseModel
 
 
@@ -9,7 +11,6 @@ class Report(BaseModel):
     date_from: datetime
     date_to: datetime
     value: float
-
 
     class Config:
         db_model = ReportDatabaseModel
