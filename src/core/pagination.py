@@ -26,7 +26,7 @@ class Paginator(Generic[T]):
 
     @cached_property
     def _total_pages(self) -> int:
-        total_pages = self.count // self.limit + self.count % self.limit
+        total_pages = self.count // self.limit
         return total_pages if total_pages != 0 else 1
 
     async def _get_next_page(self):
@@ -38,7 +38,7 @@ class Paginator(Generic[T]):
             return str(self.request.url.include_query_params(offset=self.offset - 1))
 
     def _get_last_page(self):
-        return str(self.request.url.include_query_params(offset=self.count % self.limit))
+        return str(self.request.url.include_query_params(offset=self.count // self.limit - 1))
 
     async def _get_pagination_section(self) -> PaginationSectionSchema:
         return PaginationSectionSchema(
