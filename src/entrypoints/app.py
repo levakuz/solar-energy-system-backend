@@ -10,8 +10,8 @@ from src.core.scheduler import service_scheduler
 from src.database import init_postgres_database, init_mongodb_database
 from src.device_energies.router import device_energy_router
 from src.device_types.router import device_type_router
-from src.location_weather.router import location_weather_router
 from src.devices.router import device_router
+from src.location_weather.router import location_weather_router
 from src.locations.router import locations_router
 from src.projects.router import project_router
 from src.reports.router import report_router

@@ -1,4 +1,42 @@
+from fastapi_mail import ConnectionConfig
 from pydantic import BaseSettings
+
+
+class FastAPIMailSettings(ConnectionConfig):
+    MAIL_USERNAME: str
+    MAIL_PASSWORD: str
+    MAIL_FROM: str
+    MAIL_PORT: int
+    MAIL_SERVER: str
+    MAIL_FROM_NAME: str
+    MAIL_SSL_TLS: bool
+    VALIDATE_CERTS: bool = False
+    MAIL_STARTTLS: bool = False
+
+    class Config:
+        fields = {
+            'MAIL_USERNAME': {
+                'env': 'MAIL_USERNAME'
+            },
+            'MAIL_PASSWORD': {
+                'env': 'MAIL_PASSWORD'
+            },
+            'MAIL_FROM': {
+                'env': 'MAIL_FROM'
+            },
+            'MAIL_PORT': {
+                'env': 'MAIL_PORT'
+            },
+            'MAIL_SERVER': {
+                'env': 'MAIL_SERVER'
+            },
+            'MAIL_TLS': {
+                'env': 'MAIL_TLS'
+            },
+            'MAIL_SSL': {
+                'env': 'MAIL_SSL'
+            },
+        }
 
 
 class MongoSettings(BaseSettings):
@@ -83,6 +121,7 @@ class Settings(BaseSettings):
         }}
 
     MONGO_SETTINGS: MongoSettings = MongoSettings()
+    MAIL_SETTINGS: FastAPIMailSettings = FastAPIMailSettings()
 
     class Config:
         fields = {

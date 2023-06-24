@@ -18,6 +18,7 @@ from src.accounts.schemas import (
     CompanyRegistrationSchema,
     CompanyAccountSchema
 )
+from src.accounts.services import AccountServices
 from src.accounts.unit_of_work import (
     UserAccountUnitOfWork,
     CompanyAccountUnitOfWork,
@@ -50,7 +51,7 @@ async def create_user(
             Depends(UserAccountUnitOfWork)
         ],
 ):
-    return await services.register_account(
+    return await AccountServices.register_account(
         account_uow=account_uow,
         child_account_uow=user_account_uow,
         role=AccountRole.USER,
@@ -72,7 +73,7 @@ async def delete_account(
         ],
 ):
     try:
-        return await services.mark_account_as_inactive(id=id, account_uow=account_uow)
+        return await AccountServices.mark_account_as_inactive(id=id, account_uow=account_uow)
     except AccountDoesNotExistsException as e:
         return JSONResponse(status_code=404, content={'detail': e.message})
 
@@ -131,7 +132,7 @@ async def create_company(
         ],
 ):
     try:
-        return await services.register_account(
+        return await AccountServices.register_account(
             role=AccountRole.COMPANY,
             account_uow=account_uow,
             child_account_uow=company_account_uow,

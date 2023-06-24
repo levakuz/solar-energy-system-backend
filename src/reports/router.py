@@ -4,6 +4,9 @@ import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+from src.accounts.domain import Account
+from src.accounts.services import AccountServices
+from src.auth.services import get_current_active_user
 from src.core.pagination import Paginator
 from src.core.schemas import PaginationSchema, PaginationRequestSchema
 from src.core.unit_of_work import AbstractUnitOfWork
@@ -61,8 +64,9 @@ async def create_report(
             AbstractUnitOfWork[Project],
             Depends(ProjectUnitOfWork)
         ],
+        current_user: Annotated[Account, Depends(get_current_active_user)]
 ):
-    return await ReportServices.generate_report(
+    report = await ReportServices.generate_report(
         date_from=form_data.date_from,
         date_to=form_data.date_to,
         project_id=form_data.project_id,
@@ -74,6 +78,18 @@ async def create_report(
         device_energies_uow=device_energies_uow,
         project_uow=project_uow
     )
+    report_template = await ReportServices.generate_report_template(
+        report=report,
+        project_uow=project_uow,
+        project_id=form_data.project_id
+    )
+    await AccountServices.send_email_to_user(
+        account=current_user,
+        subject='Report for project',
+        body=report_template
+    )
+    return report
+
 
 
 @report_router.get("", response_model=PaginationSchema[Report], tags=['Reports'])

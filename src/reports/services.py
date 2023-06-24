@@ -4,8 +4,9 @@ from datetime import datetime, timedelta
 from typing import List
 
 import matplotlib.pyplot as plt
-from pytz import utc
+from tortoise.transactions import atomic
 
+from src.accounts.services import AccountServices
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.device_energies.domain import DeviceEnergy
 from src.device_energies.exceptions import DeviceEnergyDoesNotExistsException
@@ -16,6 +17,8 @@ from src.location_weather.domain import LocationWeather
 from src.location_weather.services import get_weather_for_date
 from src.locations.domain import Location
 from src.projects.domain import Project
+from src.projects.models import ProjectStatus
+from src.projects.schemas import ProjectCreateUpdateSchema
 from src.reports.domain import Report
 from src.reports.schemas import ReportGenerateSchema
 
@@ -23,6 +26,7 @@ from src.reports.schemas import ReportGenerateSchema
 class ReportServices:
 
     @classmethod
+    @atomic()
     async def generate_report(
             cls,
             date_from: datetime,
@@ -85,6 +89,8 @@ class ReportServices:
             energy_values=list(project_energy.values()),
             file_path=chart_path
         )
+        project.status = ProjectStatus.inactive
+        await project_uow.update(id=project.id, update_object=ProjectCreateUpdateSchema(**project.dict()))
         return await report_uow.add(
             **ReportGenerateSchema(
                 project_id=project_id,
@@ -98,20 +104,20 @@ class ReportServices:
     @classmethod
     async def generate_report_template(
             cls,
-            image_path: str,
-            project_name: str,
+            project_uow: AbstractUnitOfWork[Project],
+            project_id: int,
             report: Report
     ):
-
+        project = await project_uow.get(id=project_id)
         # Read the temporary file as bytes
-        with open(image_path, "rb") as file:
+        with open(report.plot_path, "rb") as file:
             img_data = file.read()
 
         # Encode the image data using base64
         encoded_image = base64.b64encode(img_data).decode("utf-8")
 
         # Format the HTML report
-        report = f"""\
+        report_template = f"""\
         <html>
         <head>
             <style>
@@ -120,8 +126,8 @@ class ReportServices:
             </style>
         </head>
         <body>
-            <h2>{project_name} Electricity Production Report</h2>
-            <p>This is to inform you about the electricity production of {project_name} 
+            <h2>{project.name} Electricity Production Report</h2>
+            <p>This is to inform you about the electricity production of {project.name} 
             from {report.date_from} to {report.date_to}.</p>
             <p><strong>Electricity Production:</strong> {report.value} kWh</p>
             <p>Below is the graph showing the daily production of electricity:</p>
@@ -129,6 +135,7 @@ class ReportServices:
         </body> 
         </html> 
         """
+        return report_template
 
     @classmethod
     async def create_plot_for_report(
@@ -137,7 +144,6 @@ class ReportServices:
             energy_values: List[int],
             file_path: str
     ):
-        # Generate the graph
         plt.figure(figsize=(16, 9))
         plt.plot(dates, energy_values)
         plt.grid(axis='both', alpha=.3)
@@ -152,8 +158,7 @@ class ReportServices:
 
         plt.tight_layout()
 
-
-        # Save the graph as a temporary file
-        tmp_file = file_path  # Replace with a suitable temporary file path
+        tmp_file = file_path
         plt.savefig(tmp_file)
         plt.close()
+
