@@ -17,6 +17,8 @@ from src.location_weather.domain import LocationWeather
 from src.location_weather.unit_of_work import LocationWeatherUnitOfWork
 from src.locations.domain import Location
 from src.locations.unit_of_work import LocationUnitOfWork
+from src.projects.domain import Project
+from src.projects.unit_of_work import ProjectUnitOfWork
 from src.reports.domain import Report
 from src.reports.exceptions import ReportDoesNotExistsException
 from src.reports.schemas import ReportCreateUpdateSchema
@@ -55,6 +57,10 @@ async def create_report(
             AbstractUnitOfWork[LocationWeather],
             Depends(LocationWeatherUnitOfWork)
         ],
+        project_uow: Annotated[
+            AbstractUnitOfWork[Project],
+            Depends(ProjectUnitOfWork)
+        ],
 ):
     return await ReportServices.generate_report(
         date_from=form_data.date_from,
@@ -65,7 +71,8 @@ async def create_report(
         location_weather_uow=location_weather_uow,
         device_uow=device_uow,
         device_type_uow=device_type_uow,
-        device_energies_uow=device_energies_uow
+        device_energies_uow=device_energies_uow,
+        project_uow=project_uow
     )
 
 
