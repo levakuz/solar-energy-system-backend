@@ -14,3 +14,4 @@ class ReportGenerateSchema(BaseModel):
     date_from: datetime
     date_to: datetime
     value: float
+    plot_path: str
