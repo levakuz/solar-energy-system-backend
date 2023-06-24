@@ -2,8 +2,7 @@ from datetime import timedelta
 from typing import Annotated
 
 import fastapi.routing
-from fastapi import HTTPException, Depends
-from starlette import status
+from fastapi import Depends
 from starlette.responses import JSONResponse
 
 from src.accounts.domain import Account
