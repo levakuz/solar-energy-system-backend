@@ -25,7 +25,10 @@ class Paginator(Generic[T]):
 
     @cached_property
     def _total_pages(self) -> int:
+
         total_pages = self.count // self.limit
+        if self.count % self.limit != 0:
+            total_pages += 1
         return total_pages if total_pages != 0 else 1
 
     async def _get_next_page(self):
