@@ -4,7 +4,7 @@ from pydantic import BaseModel
 
 
 class LocationCreateUpdateSchema(BaseModel):
-    name: str
+    name: Optional[str]
     longitude: float
     latitude: float
 

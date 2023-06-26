@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 from .models import Location as LocationDatabaseModel
@@ -5,7 +7,7 @@ from .models import Location as LocationDatabaseModel
 
 class Location(BaseModel):
     id: int
-    name: str
+    name: Optional[str]
     longitude: float
     latitude: float
 
