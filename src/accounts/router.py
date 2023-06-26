@@ -1,10 +1,9 @@
-from typing import Annotated, List
+from typing import Annotated
 
 import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
-from src.accounts import services
 from src.accounts.domain import Account
 from src.accounts.exceptions import (
     AccountDoesNotExistsException,
@@ -25,6 +24,8 @@ from src.accounts.unit_of_work import (
     AccountUnitOfWork
 )
 from src.auth.services import get_current_active_user
+from src.core.pagination import Paginator
+from src.core.schemas import PaginationRequestSchema, PaginationSchema
 from src.core.unit_of_work import AbstractUnitOfWork
 
 account_router = fastapi.routing.APIRouter(
@@ -79,7 +80,7 @@ async def delete_account(
 
 
 @account_router.put(
-    '/user/{id}',
+    '/users/{id}',
     response_model=UserAccountSchema,
     dependencies=[Depends(get_current_active_user)],
     tags=['Users']
@@ -144,7 +145,7 @@ async def create_company(
 
 @account_router.get(
     '/companies',
-    response_model=List[CompanyAccountSchema],
+    response_model=PaginationSchema[CompanyAccountSchema],
     dependencies=[Depends(get_current_active_user)],
     tags=['Companies']
 )
@@ -153,8 +154,12 @@ async def get_list_company_accounts(
             AbstractUnitOfWork,
             Depends(CompanyAccountUnitOfWork)
         ],
+        pagination: Annotated[PaginationRequestSchema, Depends(PaginationRequestSchema)],
 ):
-    return await company_account_uow.list()
+    companies = await company_account_uow.list(**pagination.dict())
+    count = await company_account_uow.count()
+    paginator = Paginator[Account](models_list=companies, count=count, **pagination.dict())
+    return await paginator.get_response()
 
 
 @account_router.get(
