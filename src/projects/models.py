@@ -1,7 +1,7 @@
 import datetime
 import enum
 
-from tortoise.fields import CharField, ForeignKeyField, DatetimeField, CharEnumField
+from tortoise.fields import CharField, ForeignKeyField, DatetimeField, CharEnumField, TextField
 
 from src.core.models import BaseModel
 
@@ -16,6 +16,7 @@ class Project(BaseModel):
     name = CharField(max_length=255, null=False)
     created_at = DatetimeField(default=datetime.datetime.now)
     status = CharEnumField(enum_type=ProjectStatus, default=ProjectStatus.active)
+    photo = TextField()
 
     class Meta:
         table = "project"

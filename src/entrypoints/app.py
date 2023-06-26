@@ -38,6 +38,7 @@ app.include_router(device_router, prefix='/api/v1')
 app.include_router(device_energy_router, prefix='/api/v1')
 app.include_router(location_weather_router, prefix='/api/v1')
 app.mount("/api/v1/report-charts", StaticFiles(directory='./src/staticfiles/report_charts'))
+app.mount("/api/v1/project-photos", StaticFiles(directory='./src/staticfiles/projects_photos'))
 
 app.add_event_handler('startup', init_postgres_database)
 app.add_event_handler('startup', init_mongodb_database)

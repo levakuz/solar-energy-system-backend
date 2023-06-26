@@ -19,11 +19,11 @@ project_router = fastapi.routing.APIRouter(
 
 @project_router.post("", response_model=Project, tags=['Projects'])
 async def create_project(
-        form_data: ProjectCreateUpdateSchema,
         project_uow: Annotated[
             AbstractUnitOfWork,
             Depends(ProjectUnitOfWork)
         ],
+        form_data: ProjectCreateUpdateSchema = Depends(ProjectCreateUpdateSchema.as_form),
 ):
     return await project_uow.add(**form_data.dict())
 

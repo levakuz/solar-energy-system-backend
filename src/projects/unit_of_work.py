@@ -1,6 +1,7 @@
+import uuid
 from typing import Annotated, NoReturn, List
 
-from fastapi import Depends
+from fastapi import Depends, UploadFile
 from pydantic import BaseModel
 from tortoise.exceptions import DoesNotExist
 
@@ -38,6 +39,12 @@ class ProjectUnitOfWork(AbstractUnitOfWork[Project]):
             raise ProjectDoesNotExistsException
 
     async def add(self, *args, **kwargs) -> Project:
+        photo = kwargs.pop('photo')  # type: UploadFile
+        file_name = f'{kwargs.get("name")}_{uuid.uuid4()}.png'
+        with open(f'./src/staticfiles/projects_photos/{file_name}', 'wb') as file:
+            data = await photo.read()
+            file.write(data)
+        kwargs['photo'] = file_name
         return await self._project_repository.add(*args, **kwargs)
 
     async def delete(self, *args, **kwargs) -> NoReturn:
