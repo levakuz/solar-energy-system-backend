@@ -1,13 +1,14 @@
-from typing import Optional
+from typing import Optional, List
 
 from pydantic import BaseModel
 
 
 class DeviceCreateUpdateSchema(BaseModel):
+    name: str
     device_type_id: int
     project_id: int
     location_id: int
-    power_peak: float
+    tilt: float
     orientation: float
     count: int
 
