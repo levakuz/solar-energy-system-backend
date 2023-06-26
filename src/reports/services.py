@@ -69,6 +69,7 @@ class ReportServices:
                             )
                         location_weather = weather_for_location_from_api.get(date.isoformat(), None)
                     device_energy_value = await calculate_device_energy_based_on_location_weather(
+                        location=location,
                         device_type=await device_type_uow.get(id=device.device_type_id),
                         location_weather=location_weather
                     )

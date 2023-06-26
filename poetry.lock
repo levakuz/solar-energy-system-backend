@@ -1614,6 +1614,23 @@ anyio = ">=3.4.0,<5"
 full = ["httpx (>=0.22.0)", "itsdangerous", "jinja2", "python-multipart", "pyyaml"]
 
 [[package]]
+name = "suncalc"
+version = "0.1.3"
+description = "A fast, vectorized Python port of suncalc.js"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "suncalc-0.1.3.tar.gz", hash = "sha256:9f8834da86870b94ab8c5ab978963d7c44b8f0addce63199e53c5c5c8b0d49f6"},
+]
+
+[package.dependencies]
+numpy = "*"
+
+[package.extras]
+pandas = ["pandas"]
+tests = ["pandas", "pytest"]
+
+[[package]]
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
@@ -1841,4 +1858,4 @@ files = [
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.11"
-content-hash = "63aada890e123bd3a4bced65d0701fe5d19704e985f103c89fcd937d7460a1af"
+content-hash = "8ae808b73f9f88809ec372b042d69c8390c7211f96002bc7d0ed3815795690d6"

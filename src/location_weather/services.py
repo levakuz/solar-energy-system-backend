@@ -1,8 +1,10 @@
 from datetime import datetime
 
 import httpx
+import suncalc
 
 from src.location_weather.models import LocationWeather
+from src.locations.domain import Location
 
 
 async def create_location_weather(*args, **kwargs):
@@ -41,3 +43,8 @@ async def parse_weather_from_api(response: dict, location_id: int) -> dict:
         )
         result[time_moment] = lw
     return result
+
+
+async def calculate_sun_azimuth(location: Location, date: datetime) -> float:
+    position = suncalc.get_position(date, lng=location.longitude, lat=location.latitude)
+    return position["azimuth"]
