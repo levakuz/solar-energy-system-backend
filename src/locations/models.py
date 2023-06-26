@@ -4,7 +4,7 @@ from src.core.models import BaseModel
 
 
 class Location(BaseModel):
-    name = CharField(max_length=255, )
+    name = CharField(max_length=255, unique=True, null=True)
     longitude = FloatField(null=False)
     latitude = FloatField(null=False)
 
