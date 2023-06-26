@@ -59,6 +59,9 @@ class AccountUnitOfWork(AbstractUnitOfWork[Account]):
     async def delete(self, *args, **kwargs) -> NoReturn:
         await self._account_repository.delete(*args, **kwargs)
 
+    async def count(self, *args, **kwargs) -> int:
+        return await self._account_repository.count(*args, **kwargs)
+
 
 class UserAccountUnitOfWork(AbstractUnitOfWork[UserAccount]):
     def __init__(
@@ -91,6 +94,9 @@ class UserAccountUnitOfWork(AbstractUnitOfWork[UserAccount]):
 
     async def delete(self, *args, **kwargs) -> NoReturn:
         await self._account_repository.delete(*args, **kwargs)
+
+    async def count(self, *args, **kwargs) -> int:
+        return await self._account_repository.count(*args, **kwargs)
 
 
 class CompanyAccountUnitOfWork(AbstractUnitOfWork[CompanyAccount]):
@@ -144,3 +150,6 @@ class CompanyAccountUnitOfWork(AbstractUnitOfWork[CompanyAccount]):
 
     async def list(self, *args, **kwargs) -> List[CompanyAccount]:
         return await self._account_repository.list(*args, **kwargs)
+
+    async def count(self, *args, **kwargs) -> int:
+        return await self._account_repository.count(*args, **kwargs)
