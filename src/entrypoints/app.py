@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 from starlette.responses import JSONResponse
+from starlette.staticfiles import StaticFiles
 
 from src.accounts.exceptions import InactiveUserException
 from src.accounts.router import account_router
@@ -36,6 +37,7 @@ app.include_router(report_router, prefix='/api/v1')
 app.include_router(device_router, prefix='/api/v1')
 app.include_router(device_energy_router, prefix='/api/v1')
 app.include_router(location_weather_router, prefix='/api/v1')
+app.mount("/api/v1/report-charts", StaticFiles(directory='./src/staticfiles/report_charts'))
 
 app.add_event_handler('startup', init_postgres_database)
 app.add_event_handler('startup', init_mongodb_database)
