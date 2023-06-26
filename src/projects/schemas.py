@@ -9,8 +9,6 @@ from src.projects.models import ProjectStatus
 class ProjectCreateUpdateSchema(BaseModel):
     name: str
     account_id: int
-    created_at: datetime
-    status: ProjectStatus
 
 
 class ProjectFilterSchema(BaseModel):
