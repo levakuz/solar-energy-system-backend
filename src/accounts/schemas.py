@@ -32,4 +32,5 @@ class AccountDeleteSchema(BaseModel):
 
 
 class CompanyAccountSchema(BaseModel):
+    account_id: int
     name: str
