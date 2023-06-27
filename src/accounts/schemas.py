@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from src.accounts.models import AccountStatus
+from src.accounts.models import AccountStatus, UserAccountType
 
 
 class CompanyRegistrationSchema(BaseModel):
@@ -34,3 +34,7 @@ class AccountDeleteSchema(BaseModel):
 class CompanyAccountSchema(BaseModel):
     account_id: int
     name: str
+
+
+class UserAccountTypeSchema(BaseModel):
+    type: UserAccountType

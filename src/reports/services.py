@@ -197,7 +197,7 @@ class ReportServices:
         service_scheduler.add_job(
             cls.generate_report,
             'date',
-            id=str(project.id),
+            id=f'report__{project.id}',
             run_date=date_to,
             args=args,
             kwargs={**kwargs, 'project': project, 'date_to': date_to}

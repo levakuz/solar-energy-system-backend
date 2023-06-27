@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, NoReturn
 
 import httpx
 from fastapi import Depends
@@ -25,7 +25,7 @@ async def create_location(
         get_weather_for_last_day,
         'interval',
         days=1,
-        id=str(created_location.id),
+        id=f'location__{created_location.id}',
         args=[location.latitude, location.longitude, created_location.id],
     )  # TODO: Business logic now depends on tasks (?)
     return created_location
@@ -40,3 +40,11 @@ async def get_location_by_name(name: str) -> LocationGeocodingResponseSchema:
     if not parsed_response.results:
         raise GeocodingNotFoundException
     return LocationGeocodingResponseSchema.parse_obj(parsed_response.results[0])
+
+
+async def try_to_delete_location(
+        location_uow: AbstractUnitOfWork[Location],
+        location_id: int
+) -> NoReturn:
+    await location_uow.delete(id=location_id)
+    service_scheduler.remove_job(f'location__{location_id}')

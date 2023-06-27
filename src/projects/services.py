@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 
-from src.accounts.domain import Account
+from src.accounts.domain import Account, UserAccount
+from src.accounts.models import UserAccountType
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.device_energies.domain import DeviceEnergy
 from src.device_types.domain import DeviceType
@@ -8,6 +9,8 @@ from src.devices.domain import Device
 from src.location_weather.domain import LocationWeather
 from src.locations.domain import Location
 from src.projects.domain import Project
+from src.projects.exceptions import ProjectDoesNotExistsException, ProjectLimitForAccountExceededException
+from src.projects.schemas import ProjectCreateUpdateSchema
 from src.reports.domain import Report
 from src.reports.services import ReportServices
 
@@ -43,3 +46,19 @@ class ProjectServices:
             device_energies_uow=device_energies_uow,
             project_uow=project_uow
         )
+
+    @classmethod
+    async def try_to_create_project(
+            cls,
+            project_uow: AbstractUnitOfWork[Project],
+            user_account_uow: AbstractUnitOfWork[UserAccount],
+            project: ProjectCreateUpdateSchema,
+            current_user: Account,
+    ) -> Project:
+        user_account = await user_account_uow.get(account_id=current_user.id)
+        if user_account.type == UserAccountType.free:
+            user_projects = await project_uow.list(account_id=current_user.id)
+            if len(user_projects) > 0:
+                raise ProjectLimitForAccountExceededException
+        return await project_uow.add(**project.dict())
+

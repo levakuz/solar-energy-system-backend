@@ -4,7 +4,8 @@ import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
-from src.accounts.domain import Account
+from src.accounts.domain import Account, UserAccount
+from src.accounts.unit_of_work import UserAccountUnitOfWork
 from src.auth.services import get_current_active_user
 from src.core.pagination import Paginator
 from src.core.schemas import PaginationRequestSchema, PaginationSchema
@@ -20,7 +21,7 @@ from src.location_weather.unit_of_work import LocationWeatherUnitOfWork
 from src.locations.domain import Location
 from src.locations.unit_of_work import LocationUnitOfWork
 from src.projects.domain import Project
-from src.projects.exceptions import ProjectDoesNotExistsException
+from src.projects.exceptions import ProjectDoesNotExistsException, ProjectLimitForAccountExceededException
 from src.projects.schemas import ProjectCreateUpdateSchema, ProjectFilterSchema
 from src.projects.services import ProjectServices
 from src.projects.unit_of_work import ProjectUnitOfWork
@@ -62,21 +63,33 @@ async def create_project(
             AbstractUnitOfWork[LocationWeather],
             Depends(LocationWeatherUnitOfWork)
         ],
+        user_account_uow: Annotated[
+            AbstractUnitOfWork[UserAccount],
+            Depends(UserAccountUnitOfWork)
+        ],
         current_user: Annotated[Account, Depends(get_current_active_user)],
         form_data: ProjectCreateUpdateSchema = Depends(ProjectCreateUpdateSchema.as_form),
 ):
-    project = await project_uow.add(**form_data.dict())
-    await ProjectServices.schedule_report_creation_for_30_days(
-        report_uow=report_uow,
-        project=project,
-        current_user=current_user,
-        location_uow=location_uow,
-        location_weather_uow=location_weather_uow,
-        device_uow=device_uow,
-        device_type_uow=device_type_uow,
-        device_energies_uow=device_energies_uow,
-        project_uow=project_uow
-    )
+    try:
+        project = await ProjectServices.try_to_create_project(
+            project_uow=project_uow,
+            user_account_uow=user_account_uow,
+            project=form_data,
+            current_user=current_user
+        )
+        await ProjectServices.schedule_report_creation_for_30_days(
+            report_uow=report_uow,
+            project=project,
+            current_user=current_user,
+            location_uow=location_uow,
+            location_weather_uow=location_weather_uow,
+            device_uow=device_uow,
+            device_type_uow=device_type_uow,
+            device_energies_uow=device_energies_uow,
+            project_uow=project_uow
+        )
+    except ProjectLimitForAccountExceededException as e:
+        return JSONResponse(status_code=400, content={'detail': e.message})
     return project
 
 

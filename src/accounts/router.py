@@ -4,7 +4,7 @@ import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
-from src.accounts.domain import Account
+from src.accounts.domain import Account, UserAccount
 from src.accounts.exceptions import (
     AccountDoesNotExistsException,
     CompanyWithNameAlreadyExistsException
@@ -15,7 +15,7 @@ from src.accounts.schemas import (
     AccountSchema,
     UserAccountSchema,
     CompanyRegistrationSchema,
-    CompanyAccountSchema
+    CompanyAccountSchema, UserAccountTypeSchema
 )
 from src.accounts.services import AccountServices
 from src.accounts.unit_of_work import (
@@ -115,6 +115,27 @@ async def get_user_account(
 ):
     try:
         user_account = await account_uow.get(account_id=id)
+        return user_account
+    except AccountDoesNotExistsException as e:
+        return JSONResponse(status_code=404, content={'detail': e.message})
+
+
+@account_router.put(
+    '/users/{id}/type',
+    response_model=UserAccount,
+    dependencies=[Depends(get_current_active_user)],
+    tags=['Users']
+)
+async def get_user_account(
+        id: int,
+        account_uow: Annotated[
+            AbstractUnitOfWork,
+            Depends(UserAccountUnitOfWork)
+        ],
+        form_data: UserAccountTypeSchema
+):
+    try:
+        user_account = await account_uow.update(account_id=id, update_object=form_data)
         return user_account
     except AccountDoesNotExistsException as e:
         return JSONResponse(status_code=404, content={'detail': e.message})
