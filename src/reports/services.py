@@ -1,12 +1,14 @@
 import base64
 import uuid
 from datetime import datetime, timedelta
-from typing import List
+from typing import List, NoReturn
 
 import matplotlib.pyplot as plt
 from tortoise.transactions import atomic
 
+from src.accounts.domain import Account
 from src.accounts.services import AccountServices
+from src.core.scheduler import service_scheduler
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.device_energies.domain import DeviceEnergy
 from src.device_energies.exceptions import DeviceEnergyDoesNotExistsException
@@ -18,8 +20,9 @@ from src.location_weather.services import get_weather_for_date
 from src.locations.domain import Location
 from src.projects.domain import Project
 from src.projects.models import ProjectStatus
-from src.projects.schemas import ProjectCreateUpdateSchema
+from src.projects.schemas import ProjectUpdateStatusSchema
 from src.reports.domain import Report
+from src.reports.exceptions import GenerateReportForInactiveProjectException, GenerateReportNotWithinYearException
 from src.reports.schemas import ReportGenerateSchema
 
 
@@ -31,7 +34,8 @@ class ReportServices:
             cls,
             date_from: datetime,
             date_to: datetime,
-            project_id: int,
+            project: Project,
+            current_user: Account,
             device_uow: AbstractUnitOfWork[Device],
             device_energies_uow: AbstractUnitOfWork[DeviceEnergy],
             location_weather_uow: AbstractUnitOfWork[LocationWeather],
@@ -40,11 +44,10 @@ class ReportServices:
             report_uow: AbstractUnitOfWork[Report],
             project_uow: AbstractUnitOfWork[Project],
 
-    ) -> Report:
+    ) -> NoReturn:
         # 1) Get all project devices
 
-        devices = await device_uow.list(project=project_id)
-        project = await project_uow.get(id=project_id)
+        devices = await device_uow.list(project=project.id)
         # 2) Get device locations
         total_energy = 0
         project_energy = {}
@@ -67,11 +70,13 @@ class ReportServices:
                                 location.longitude,
                                 location.id
                             )
-                        location_weather = weather_for_location_from_api.get(date.isoformat(), None)
+                        date_without_tz = date.replace(tzinfo=None)
+                        location_weather = weather_for_location_from_api.get(date_without_tz.isoformat(), None)
                     device_energy_value = await calculate_device_energy_based_on_location_weather(
                         location=location,
                         device_type=await device_type_uow.get(id=device.device_type_id),
-                        location_weather=location_weather
+                        location_weather=location_weather,
+                        device=device
                     )
                     await device_energies_uow.add(
                         value=device_energy_value,
@@ -91,15 +96,26 @@ class ReportServices:
             file_path=chart_path
         )
         project.status = ProjectStatus.inactive
-        await project_uow.update(id=project.id, update_object=ProjectCreateUpdateSchema(**project.dict()))
-        return await report_uow.add(
+        await project_uow.update(id=project.id, update_object=ProjectUpdateStatusSchema(**project.dict()))
+        report = await report_uow.add(
             **ReportGenerateSchema(
-                project_id=project_id,
+                project_id=project.id,
                 date_from=date_from,
                 date_to=date_to,
                 value=total_energy,
                 plot_path=chart_path
             ).dict()
+        )
+        # Due to scheduler now business logic depends on sending email
+        report_template = await ReportServices.generate_report_template(
+            report=report,
+            project_uow=project_uow,
+            project_id=project.id
+        )
+        await AccountServices.send_email_to_user(
+            account=current_user,
+            subject='Report for project',
+            body=report_template
         )
 
     @classmethod
@@ -151,10 +167,16 @@ class ReportServices:
 
         plt.xlabel("Date", fontsize=16)
         plt.ylabel("Daily Production (kWh)", fontsize=16)
-        plt.title("Daily Production of Electricity", fontsize=16)
-        x_ticks = list({datetime(i.year, i.month, i.day) for i in dates})
-        x_labels = [i.strftime("%d/%m/%Y") for i in x_ticks]
-        plt.xticks(fontsize=16, labels=x_labels, ticks=x_ticks, rotation=60)
+        if dates[-1] - dates[0] > timedelta(days=1):
+            plt.title("Daily Production of Electricity", fontsize=16)
+            x_ticks = list({datetime(i.year, i.month, i.day) for i in dates})
+            x_labels = [i.strftime("%d/%m/%Y") for i in x_ticks]
+            plt.xticks(fontsize=16, labels=x_labels, ticks=x_ticks, rotation=60)
+        else:
+            plt.title("Hourly Production of Electricity", fontsize=16)
+            x_ticks = list(dates)
+            x_labels = [i.strftime("%d/%m/%Y %H:%M") for i in x_ticks]
+            plt.xticks(fontsize=16, labels=x_labels, ticks=x_ticks, rotation=60)
         plt.yticks(fontsize=16)
 
         plt.tight_layout()
@@ -163,3 +185,69 @@ class ReportServices:
         plt.savefig(tmp_file)
         plt.close()
 
+    @classmethod
+    async def schedule_report_creation(
+            cls,
+            date_to: datetime,
+            project: Project,
+            *args,
+            **kwargs,
+
+    ):
+        service_scheduler.add_job(
+            cls.generate_report,
+            'date',
+            id=str(project.id),
+            run_date=date_to,
+            args=args,
+            kwargs={**kwargs, 'project': project, 'date_to': date_to}
+        )
+
+    @classmethod
+    async def try_to_generate_report(
+            cls,
+            date_from: datetime,
+            date_to: datetime,
+            project_id: int,
+            current_user: Account,
+            report_uow: AbstractUnitOfWork[Report],
+            location_uow: AbstractUnitOfWork[Location],
+            location_weather_uow: AbstractUnitOfWork[LocationWeather],
+            device_uow: AbstractUnitOfWork[Device],
+            device_type_uow: AbstractUnitOfWork[DeviceType],
+            device_energies_uow: AbstractUnitOfWork[DeviceEnergy],
+            project_uow: AbstractUnitOfWork[Project]
+    ):
+        project = await project_uow.get(id=project_id)
+        if project.status == ProjectStatus.inactive:
+            raise GenerateReportForInactiveProjectException
+        if date_to - date_from > timedelta(weeks=52):
+            raise GenerateReportNotWithinYearException
+        if date_to <= datetime.now(tz=date_to.tzinfo):
+            return await cls.generate_report(
+                date_from=date_from,
+                date_to=date_to,
+                project=project,
+                current_user=current_user,
+                report_uow=report_uow,
+                location_uow=location_uow,
+                location_weather_uow=location_weather_uow,
+                device_uow=device_uow,
+                device_type_uow=device_type_uow,
+                device_energies_uow=device_energies_uow,
+                project_uow=project_uow
+            )
+        else:
+            await cls.schedule_report_creation(
+                date_from=date_from,
+                date_to=date_to,
+                report_uow=report_uow,
+                project=project,
+                current_user=current_user,
+                location_uow=location_uow,
+                location_weather_uow=location_weather_uow,
+                device_uow=device_uow,
+                device_type_uow=device_type_uow,
+                device_energies_uow=device_energies_uow,
+                project_uow=project_uow
+            )

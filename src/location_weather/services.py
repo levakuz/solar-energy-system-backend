@@ -32,6 +32,10 @@ async def get_weather_for_date(
 async def parse_weather_from_api(response: dict, location_id: int) -> dict:
     result = {}
     for index, time_moment in enumerate(response["hourly"]["time"]):
+        if not response["hourly"]["direct_normal_irradiance"][index]:
+            response["hourly"]["direct_normal_irradiance"][index] = 0
+        if not response["hourly"]["cloudcover"][index]:
+            response["hourly"]["cloudcover"][index] = 0
         lw = LocationWeather(
             location_id=location_id,
             date=time_moment,
@@ -41,7 +45,7 @@ async def parse_weather_from_api(response: dict, location_id: int) -> dict:
         await create_location_weather(
             **lw.dict()
         )
-        result[time_moment] = lw
+        result[datetime.fromisoformat(time_moment).isoformat()] = lw
     return result
 
 
