@@ -9,8 +9,8 @@ from src.location_weather.models import LocationWeather as LocationWeatherDataba
 class LocationWeather(BaseModel):
     location_id: int
     date: datetime
-    direct_normal_irradiance: Optional[float]
-    cloudcover: Optional[float]
+    direct_normal_irradiance: float
+    cloudcover: float
 
     class Config:
         db_model = LocationWeatherDatabaseModel
