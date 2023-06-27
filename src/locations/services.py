@@ -24,7 +24,7 @@ async def create_location(
     service_scheduler.add_job(
         get_weather_for_last_day,
         'interval',
-        seconds=10,
+        days=1,
         id=str(created_location.id),
         args=[location.latitude, location.longitude, created_location.id],
     )  # TODO: Business logic now depends on tasks (?)
