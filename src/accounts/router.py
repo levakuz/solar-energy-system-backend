@@ -15,7 +15,7 @@ from src.accounts.schemas import (
     AccountSchema,
     UserAccountSchema,
     CompanyRegistrationSchema,
-    CompanyAccountSchema, UserAccountTypeSchema
+    CompanyAccountSchema, UserAccountTypeSchema, CompanyAccountUpdateSchema
 )
 from src.accounts.services import AccountServices
 from src.accounts.unit_of_work import (
@@ -214,7 +214,7 @@ async def update_company_account(
             AbstractUnitOfWork,
             Depends(CompanyAccountUnitOfWork)
         ],
-        company_account: CompanyAccountSchema
+        company_account: CompanyAccountUpdateSchema
 ):
     try:
         return await company_account_uow.update(account_id=id, update_object=company_account)

@@ -36,5 +36,9 @@ class CompanyAccountSchema(BaseModel):
     name: str
 
 
+class CompanyAccountUpdateSchema(BaseModel):
+    name: str
+
+
 class UserAccountTypeSchema(BaseModel):
     type: UserAccountType
