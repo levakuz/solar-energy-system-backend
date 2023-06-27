@@ -37,6 +37,8 @@ class FastAPIMailSettings(ConnectionConfig):
                 'env': 'MAIL_SSL'
             },
         }
+        env_file = '.env'
+        env_file_encoding = 'utf-8'
 
 
 class MongoSettings(BaseSettings):
