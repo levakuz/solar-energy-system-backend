@@ -11,7 +11,7 @@ from src.locations import services
 from src.locations.domain import Location
 from src.locations.exceptions import LocationDoesNotExistsException, GeocodingNotFoundException
 from src.locations.schemas import LocationCreateUpdateSchema, LocationGeocodingResponseSchema
-from src.locations.services import get_location_by_name
+from src.locations.services import get_location_by_name, try_to_delete_location
 from src.locations.unit_of_work import LocationUnitOfWork
 
 locations_router = fastapi.routing.APIRouter(
@@ -82,7 +82,7 @@ async def delete_location(
         ],
 ):
     try:
-        return await location_uow.delete(id=id)
+        await try_to_delete_location(location_uow=location_uow, location_id=id)
     except LocationDoesNotExistsException:
         return
 
