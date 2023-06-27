@@ -7,6 +7,7 @@ from starlette.responses import JSONResponse
 
 from src.accounts.domain import Account
 from src.accounts.exceptions import AccountDoesNotExistsException
+from src.auth.exceptions import InvalidCredentialsException
 from src.auth.schemas import Token, LoginData
 from src.auth.services import authenticate_user
 from src.auth.utils import create_access_token
@@ -31,7 +32,9 @@ async def login_for_access_token(
     try:
         user = await authenticate_user(account_repository, form_data.email, form_data.password)
     except AccountDoesNotExistsException as e:
-        return JSONResponse(status_code=404, content={'detail': AccountDoesNotExistsException.message})
+        return JSONResponse(status_code=404, content={'detail': e.message})
+    except InvalidCredentialsException as e:
+        return JSONResponse(status_code=400, content={'detail': e.message})
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": user.email}, expires_delta=access_token_expires
