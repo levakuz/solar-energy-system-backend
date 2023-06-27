@@ -1,12 +1,15 @@
-from tortoise.fields import CharField, ForeignKeyField
+from tortoise.fields import CharField, ForeignKeyField, TextField, FloatField
+
 from src.core.models import BaseModel
 
 
 class DeviceType(BaseModel):
     company = ForeignKeyField('models.CompanyAccount', related_name='company_devices', to_field='account_id')
     name = CharField(max_length=255, unique=True, null=False)
-    area = CharField(max_length=255, null=True)
-    system_loss = CharField(max_length=255, null=False)
+    area = FloatField(null=False)
+    efficiency = FloatField(null=False)
+    system_loss = FloatField(null=False)
+    photo = TextField()
 
     class Meta:
         table = "device_type"

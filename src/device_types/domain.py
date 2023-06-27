@@ -7,8 +7,10 @@ class DeviceType(BaseModel):
     id: int
     company_id: int
     name: str
-    area: str
-    system_loss: str
+    area: float
+    system_loss: float
+    efficiency: float
+    photo: str
 
     class Config:
         db_model = DeviceTypeDatabaseModel

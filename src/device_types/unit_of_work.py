@@ -1,13 +1,12 @@
+import uuid
 from typing import Annotated, NoReturn, List
 
 from fastapi import Depends
 from pydantic import BaseModel
 from tortoise.exceptions import DoesNotExist
 
-from src.core.pagination import Paginator
 from src.core.repository import TortoiseRepository, AbstractRepository
 from src.core.repository_factory import RepositoryFactory
-from src.core.schemas import PaginationSchema
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.device_types.domain import DeviceType
 from src.device_types.exceptions import DeviceTypeDoesNotExistsException
@@ -40,6 +39,12 @@ class DeviceTypeUnitOfWork(AbstractUnitOfWork[DeviceType]):
             raise DeviceTypeDoesNotExistsException
 
     async def add(self, *args, **kwargs) -> DeviceType:
+        photo = kwargs.pop('photo')  # type: UploadFile
+        file_name = f'{kwargs.get("name")}_{uuid.uuid4()}.png'
+        with open(f'./src/staticfiles/device_types_photos/{file_name}', 'wb') as file:
+            data = await photo.read()
+            file.write(data)
+        kwargs['photo'] = file_name
         return await self._device_type_repository.add(*args, **kwargs)
 
     async def delete(self, *args, **kwargs) -> NoReturn:

@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import Annotated
 
 import fastapi
 from fastapi import Depends
@@ -19,11 +19,11 @@ device_type_router = fastapi.routing.APIRouter(
 
 @device_type_router.post("", response_model=DeviceType, tags=['Device Types'])
 async def create_device_type(
-        form_data: DeviceTypeCreateSchema,
         device_type_uow: Annotated[
             AbstractUnitOfWork,
             Depends(DeviceTypeUnitOfWork)
         ],
+        form_data: DeviceTypeCreateSchema = Depends(DeviceTypeCreateSchema.as_form),
 ):
     return await device_type_uow.add(**form_data.dict())
 
