@@ -1,0 +1,16 @@
+version: '3.1'
+
+services:
+  backend_service:
+    container_name: solar_energy_calculation_backend_service
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    env_file:
+      - .env
+    ports:
+      - "${SERVER_PORT}:${SERVER_PORT}"
+    command: bash -c "python run.py"
+#    command: bash -c "tail -f /dev/null"
+    volumes:
+      - ./:/opt/solar_energy_system

@@ -49,20 +49,6 @@ class MongoSettings(BaseSettings):
     MONGO_SCHEDULE_TASKS_DB_NAME: str = 'scheduler'
     MONGO_SCHEDULE_TASKS_COLLECTION_NAME: str = 'jobs'
     MONGO_WEATHER_DATA_DB_NAME: str = 'weather_data'
-    SCHEDULER_URL: str = f'mongodb://' \
-                         f'{MONGO_USER}:' \
-                         f'{MONGO_PASSWORD}@' \
-                         f'{MONGO_IP}:' \
-                         f'{MONGO_PORT}' \
-                         f'/?authSource=admin&directConnection=true&ssl=false'
-
-    BEANIE_URL: str = f'mongodb://' \
-                      f'{MONGO_USER}:' \
-                      f'{MONGO_PASSWORD}@' \
-                      f'{MONGO_IP}:' \
-                      f'{MONGO_PORT}/' \
-                      f'{MONGO_WEATHER_DATA_DB_NAME}' \
-                      f'?authSource=admin&directConnection=true&ssl=false'
 
     class Config:
         fields = {
@@ -104,26 +90,22 @@ class Settings(BaseSettings):
     DB_NAME: str = 'test'
     SERVER_PORT: int = 8000
 
-    TORTOISE_ORM: dict = {
-        "connections": {"default": f"asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_IP}:{DB_PORT}/{DB_NAME}"},
-        "apps": {
-            "models": {
-                "models": [
-                    "src.accounts.models",
-                    "src.device_types.models",
-                    "src.locations.models",
-                    "src.projects.models",
-                    "src.reports.models",
-                    "src.devices.models",
-                    "src.device_energies.models",
-                    "aerich.models"
-                ],
-                "default_connection": "default",
-            },
-        }}
-
     MONGO_SETTINGS: MongoSettings = MongoSettings()
     MAIL_SETTINGS: FastAPIMailSettings = FastAPIMailSettings()
+    SCHEDULER_URL: str = f'mongodb://' \
+                         f'{MONGO_SETTINGS.MONGO_USER}:' \
+                         f'{MONGO_SETTINGS.MONGO_PASSWORD}@' \
+                         f'{MONGO_SETTINGS.MONGO_IP}:' \
+                         f'{MONGO_SETTINGS.MONGO_PORT}' \
+                         f'/?authSource=admin&directConnection=true&ssl=false'
+
+    BEANIE_URL: str = f'mongodb://' \
+                      f'{MONGO_SETTINGS.MONGO_USER}:' \
+                      f'{MONGO_SETTINGS.MONGO_PASSWORD}@' \
+                      f'{MONGO_SETTINGS.MONGO_IP}:' \
+                      f'{MONGO_SETTINGS.MONGO_PORT}/' \
+                      f'{MONGO_SETTINGS.MONGO_WEATHER_DATA_DB_NAME}' \
+                      f'?authSource=admin&directConnection=true&ssl=false'
 
     class Config:
         fields = {
@@ -151,4 +133,27 @@ class Settings(BaseSettings):
 
 
 settings: Settings = Settings()
-TORTOISE_ORM: dict = Settings().TORTOISE_ORM
+TORTOISE_ORM: dict = {
+    "connections": {
+        "default": f"asyncpg://"
+                   f"{settings.DB_USER}"
+                   f":{settings.DB_PASSWORD}"
+                   f"@{settings.DB_IP}"
+                   f":{settings.DB_PORT}"
+                   f"/{settings.DB_NAME}"},
+    "apps": {
+        "models": {
+            "models": [
+                "src.accounts.models",
+                "src.device_types.models",
+                "src.locations.models",
+                "src.projects.models",
+                "src.reports.models",
+                "src.devices.models",
+                "src.device_energies.models",
+                "aerich.models"
+            ],
+            "default_connection": "default",
+        },
+    }}
+print(settings.DB_IP)

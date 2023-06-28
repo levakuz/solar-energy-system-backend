@@ -13,7 +13,7 @@ class ServiceScheduler(AsyncIOScheduler, Singleton):
         job_store = MongoDBJobStore(
             database=settings.MONGO_SETTINGS.MONGO_SCHEDULE_TASKS_DB_NAME,
             collection=settings.MONGO_SETTINGS.MONGO_SCHEDULE_TASKS_COLLECTION_NAME,
-            client=MongoClient(settings.MONGO_SETTINGS.SCHEDULER_URL)
+            client=MongoClient(settings.SCHEDULER_URL)
         )
         self.add_jobstore(job_store)
 
