@@ -29,7 +29,8 @@ from src.reports.domain import Report
 from src.reports.unit_of_work import ReportUnitOfWork
 
 project_router = fastapi.routing.APIRouter(
-    prefix='/projects'
+    prefix='/projects',
+    dependencies=[Depends(get_current_active_user)],
 )
 
 

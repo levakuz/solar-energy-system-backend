@@ -28,7 +28,8 @@ from src.reports.services import ReportServices
 from src.reports.unit_of_work import ReportUnitOfWork
 
 report_router = fastapi.routing.APIRouter(
-    prefix='/reports'
+    prefix='/reports',
+    dependencies=[Depends(get_current_active_user)],
 )
 
 

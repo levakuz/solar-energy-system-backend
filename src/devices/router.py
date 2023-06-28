@@ -19,7 +19,8 @@ from src.locations.domain import Location
 from src.locations.unit_of_work import LocationUnitOfWork
 
 device_router = fastapi.routing.APIRouter(
-    prefix='/devices'
+    prefix='/devices',
+    dependencies=[Depends(get_current_active_user)],
 )
 
 

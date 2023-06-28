@@ -4,6 +4,7 @@ import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+from src.auth.services import get_current_active_user
 from src.core.pagination import Paginator
 from src.core.schemas import PaginationRequestSchema, PaginationSchema
 from src.core.unit_of_work import AbstractUnitOfWork
@@ -15,7 +16,8 @@ from src.locations.services import get_location_by_name, try_to_delete_location
 from src.locations.unit_of_work import LocationUnitOfWork
 
 locations_router = fastapi.routing.APIRouter(
-    prefix='/locations'
+    prefix='/locations',
+    dependencies=[Depends(get_current_active_user)],
 )
 
 

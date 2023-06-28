@@ -4,6 +4,7 @@ import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+from src.auth.services import get_current_active_user
 from src.core.pagination import Paginator
 from src.core.schemas import PaginationRequestSchema, PaginationSchema
 from src.core.unit_of_work import AbstractUnitOfWork
@@ -13,7 +14,8 @@ from src.device_types.schemas import DeviceTypeCreateSchema, DeviceTypeFilterSch
 from src.device_types.unit_of_work import DeviceTypeUnitOfWork
 
 device_type_router = fastapi.routing.APIRouter(
-    prefix='/device-types'
+    prefix='/device-types',
+    dependencies=[Depends(get_current_active_user)],
 )
 
 

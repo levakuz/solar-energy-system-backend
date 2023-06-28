@@ -3,6 +3,7 @@ from typing import Annotated
 import fastapi
 from fastapi import Depends
 
+from src.auth.services import get_current_active_user
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.device_types.domain import DeviceType
 from src.device_types.schemas import DeviceTypeCreateSchema
@@ -11,11 +12,15 @@ from src.location_weather.domain import LocationWeather
 from src.location_weather.unit_of_work import LocationWeatherUnitOfWork
 
 location_weather_router = fastapi.routing.APIRouter(
-    prefix='/weather-locations'
+    prefix='/weather-locations', dependencies=[Depends(get_current_active_user)],
 )
 
 
-@location_weather_router.post("", response_model=LocationWeather, tags=['Location Weather'])
+@location_weather_router.post(
+    "",
+    response_model=LocationWeather,
+    tags=['Location Weather'],
+)
 async def create_location_weather(
         form_data: LocationWeather,
         location_weather_uow: Annotated[

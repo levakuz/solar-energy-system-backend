@@ -1,9 +1,10 @@
-from typing import Annotated, List
+from typing import Annotated
 
 import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+from src.auth.services import get_current_active_user
 from src.core.pagination import Paginator
 from src.core.schemas import PaginationRequestSchema, PaginationSchema
 from src.core.unit_of_work import AbstractUnitOfWork
@@ -17,7 +18,12 @@ device_energy_router = fastapi.routing.APIRouter(
 )
 
 
-@device_energy_router.post("", response_model=DeviceEnergy, tags=['Device Energies'])
+@device_energy_router.post(
+    "",
+    response_model=DeviceEnergy,
+    tags=['Device Energies'],
+    dependencies=[Depends(get_current_active_user)],
+)
 async def create_device_energy(
         form_data: DeviceEnergyCreateSchema,
         device_energy_uow: Annotated[
@@ -28,7 +34,12 @@ async def create_device_energy(
     return await device_energy_uow.add(**form_data.dict())
 
 
-@device_energy_router.get("", response_model=PaginationSchema[DeviceEnergy], tags=['Device Energies'])
+@device_energy_router.get(
+    "",
+    response_model=PaginationSchema[DeviceEnergy],
+    tags=['Device Energies'],
+    dependencies=[Depends(get_current_active_user)],
+)
 async def get_device_energy_list(
         device_energy_uow: Annotated[
             AbstractUnitOfWork,
@@ -43,7 +54,12 @@ async def get_device_energy_list(
     return await paginator.get_response()
 
 
-@device_energy_router.get("/{id}", response_model=DeviceEnergy, tags=['Device Energies'])
+@device_energy_router.get(
+    "/{id}",
+    response_model=DeviceEnergy,
+    tags=['Device Energies'],
+    dependencies=[Depends(get_current_active_user)],
+)
 async def get_device_energy(
         id: int,
         device_energy_uow: Annotated[
@@ -57,7 +73,12 @@ async def get_device_energy(
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
-@device_energy_router.put("/{id}", response_model=DeviceEnergy, tags=['Device Energies'])
+@device_energy_router.put(
+    "/{id}",
+    response_model=DeviceEnergy,
+    tags=['Device Energies'],
+    dependencies=[Depends(get_current_active_user)],
+)
 async def update_device_energy(
         id: int,
         form_data: DeviceEnergyCreateSchema,
@@ -72,7 +93,11 @@ async def update_device_energy(
         return JSONResponse(status_code=404, content={'detail': e.message})
 
 
-@device_energy_router.delete("/{id}", tags=['Device Energies'])
+@device_energy_router.delete(
+    "/{id}",
+    tags=['Device Energies'],
+    dependencies=[Depends(get_current_active_user)],
+)
 async def delete_device_energy(
         id: int,
         device_energy_uow: Annotated[
