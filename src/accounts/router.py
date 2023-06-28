@@ -9,12 +9,9 @@ from src.accounts.exceptions import (
     AccountDoesNotExistsException,
     CompanyWithNameAlreadyExistsException
 )
-from src.accounts.models import AccountRole
 from src.accounts.schemas import (
-    UserRegistrationSchema,
     AccountSchema,
     UserAccountSchema,
-    CompanyRegistrationSchema,
     CompanyAccountSchema, UserAccountTypeSchema, CompanyAccountUpdateSchema
 )
 from src.accounts.services import AccountServices
@@ -38,26 +35,6 @@ async def read_users_me(
         current_user: Annotated[Account, Depends(get_current_active_user)]
 ):
     return current_user
-
-
-@account_router.post("/users", response_model=Account, tags=['Users'])
-async def create_user(
-        form_data: UserRegistrationSchema,
-        account_uow: Annotated[
-            AbstractUnitOfWork,
-            Depends(AccountUnitOfWork)
-        ],
-        user_account_uow: Annotated[
-            AbstractUnitOfWork,
-            Depends(UserAccountUnitOfWork)
-        ],
-):
-    return await AccountServices.register_account(
-        account_uow=account_uow,
-        child_account_uow=user_account_uow,
-        role=AccountRole.USER,
-        **form_data.dict(),
-    )
 
 
 @account_router.delete(
@@ -139,29 +116,6 @@ async def get_user_account(
         return user_account
     except AccountDoesNotExistsException as e:
         return JSONResponse(status_code=404, content={'detail': e.message})
-
-
-@account_router.post("/companies", response_model=Account, tags=['Companies'])
-async def create_company(
-        form_data: CompanyRegistrationSchema,
-        account_uow: Annotated[
-            AbstractUnitOfWork,
-            Depends(AccountUnitOfWork)
-        ],
-        company_account_uow: Annotated[
-            AbstractUnitOfWork,
-            Depends(CompanyAccountUnitOfWork)
-        ],
-):
-    try:
-        return await AccountServices.register_account(
-            role=AccountRole.COMPANY,
-            account_uow=account_uow,
-            child_account_uow=company_account_uow,
-            **form_data.dict()
-        )
-    except CompanyWithNameAlreadyExistsException as e:
-        return JSONResponse(status_code=400, content={'detail': e.message})
 
 
 @account_router.get(
