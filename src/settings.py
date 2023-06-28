@@ -102,6 +102,7 @@ class Settings(BaseSettings):
     DB_IP: str = 'localhost'
     DB_PORT: int = 5432
     DB_NAME: str = 'test'
+    SERVER_PORT: int = 8000
 
     TORTOISE_ORM: dict = {
         "connections": {"default": f"asyncpg://{DB_USER}:{DB_PASSWORD}@{DB_IP}:{DB_PORT}/{DB_NAME}"},
