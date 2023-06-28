@@ -94,7 +94,6 @@ class MongoSettings(BaseSettings):
 
 
 class Settings(BaseSettings):
-    db_url: str = ''
     SECRET_KEY = ''
     ALGORITHM = 'HS256'
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
