@@ -18,7 +18,10 @@ from src.locations.router import locations_router
 from src.projects.router import project_router
 from src.reports.router import report_router
 
-app = FastAPI()
+app = FastAPI(
+    title="Solar energy calculation system",
+    description="Project made by Lev Kuznetsov and Anton Stepanets"
+)
 
 app.add_middleware(
     CORSMiddleware,
