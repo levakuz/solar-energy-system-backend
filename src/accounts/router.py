@@ -4,6 +4,7 @@ import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+import src.accounts.services as account_services
 from src.accounts.domain import Account, UserAccount
 from src.accounts.exceptions import (
     AccountDoesNotExistsException,
@@ -14,7 +15,6 @@ from src.accounts.schemas import (
     UserAccountSchema,
     CompanyAccountSchema, UserAccountTypeSchema, CompanyAccountUpdateSchema
 )
-from src.accounts.services import AccountServices
 from src.accounts.unit_of_work import (
     UserAccountUnitOfWork,
     CompanyAccountUnitOfWork,
@@ -30,7 +30,7 @@ account_router = fastapi.routing.APIRouter(
 )
 
 
-@account_router.get("/me", response_model=Account)
+@account_router.get("/me", response_model=Account, tags=['Accounts'])
 async def read_users_me(
         current_user: Annotated[Account, Depends(get_current_active_user)]
 ):
@@ -51,7 +51,7 @@ async def delete_account(
         ],
 ):
     try:
-        return await AccountServices.mark_account_as_inactive(id=id, account_uow=account_uow)
+        return await account_services.mark_account_as_inactive(id=id, account_uow=account_uow)
     except AccountDoesNotExistsException as e:
         return JSONResponse(status_code=404, content={'detail': e.message})
 

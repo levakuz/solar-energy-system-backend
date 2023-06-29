@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from tortoise.transactions import atomic
 
 from src.accounts.domain import Account
-from src.accounts.services import AccountServices
+import src.accounts.services as account_services
 from src.core.scheduler import service_scheduler
 from src.core.unit_of_work import AbstractUnitOfWork
 from src.device_energies.domain import DeviceEnergy
@@ -112,7 +112,7 @@ class ReportServices:
             project_uow=project_uow,
             project_id=project.id
         )
-        await AccountServices.send_email_to_user(
+        await account_services.send_email_to_user(
             account=current_user,
             subject='Report for project',
             body=report_template
