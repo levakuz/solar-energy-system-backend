@@ -30,7 +30,7 @@ account_router = fastapi.routing.APIRouter(
 )
 
 
-@account_router.get("/me", response_model=Account, tags=['Accounts'])
+@account_router.get("/me", response_model=AccountSchema, tags=['Accounts'])
 async def read_users_me(
         current_user: Annotated[Account, Depends(get_current_active_user)]
 ):
