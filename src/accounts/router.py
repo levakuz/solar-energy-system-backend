@@ -4,6 +4,7 @@ import fastapi
 from fastapi import Depends
 from starlette.responses import JSONResponse
 
+import src.accounts.services as account_services
 from src.accounts.domain import Account, UserAccount
 from src.accounts.exceptions import (
     AccountDoesNotExistsException,
@@ -17,7 +18,6 @@ from src.accounts.schemas import (
     CompanyRegistrationSchema,
     CompanyAccountSchema, UserAccountTypeSchema, CompanyAccountUpdateSchema
 )
-from src.accounts.services import AccountServices
 from src.accounts.unit_of_work import (
     UserAccountUnitOfWork,
     CompanyAccountUnitOfWork,
@@ -52,7 +52,7 @@ async def create_user(
             Depends(UserAccountUnitOfWork)
         ],
 ):
-    return await AccountServices.register_account(
+    return await account_services.register_account(
         account_uow=account_uow,
         child_account_uow=user_account_uow,
         role=AccountRole.USER,
@@ -74,7 +74,7 @@ async def delete_account(
         ],
 ):
     try:
-        return await AccountServices.mark_account_as_inactive(id=id, account_uow=account_uow)
+        return await account_services.mark_account_as_inactive(id=id, account_uow=account_uow)
     except AccountDoesNotExistsException as e:
         return JSONResponse(status_code=404, content={'detail': e.message})
 
@@ -154,7 +154,7 @@ async def create_company(
         ],
 ):
     try:
-        return await AccountServices.register_account(
+        return await account_services.register_account(
             role=AccountRole.COMPANY,
             account_uow=account_uow,
             child_account_uow=company_account_uow,
