@@ -14,8 +14,9 @@
 ### Development environment
 
 #### Project infrastructure
-
-1. Deploy project infrastructure with docker compose
+1. Set environment variables for development environment as shown in
+"Development environment settings" in example.env file 
+2. Deploy project infrastructure with docker compose
 `docker compose --file docker-compose.dev.yml up -d`
 
 #### Project environment for development
