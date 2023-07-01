@@ -10,7 +10,7 @@ services:
       - .env
     ports:
       - "${SERVER_PORT}:${SERVER_PORT}"
-    command: bash -c "python run.py"
+    command: bash -c "aerich upgrade && python run.py"
 #    command: bash -c "tail -f /dev/null"
     volumes:
       - ./:/opt/solar_energy_system
