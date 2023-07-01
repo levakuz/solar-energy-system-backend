@@ -22,6 +22,7 @@ class UserAccountSchema(BaseModel):
 
 
 class AccountSchema(BaseModel):
+    id: int
     email: str
     phone_number: str | None
     status: AccountStatus
