@@ -156,4 +156,3 @@ TORTOISE_ORM: dict = {
             "default_connection": "default",
         },
     }}
-print(settings.DB_IP)

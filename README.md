@@ -29,7 +29,7 @@ You can find example in `example.env` file.
 4. Load environment variables from `.env` file `export $(cat .env | xargs)`
    (remove all comments in file before)
 5. Run the `run.py` script, which will start the 
-uvicorn web server
+uvicorn web server: `poetry run python run.py`
 
 #### Project environment for production
 
