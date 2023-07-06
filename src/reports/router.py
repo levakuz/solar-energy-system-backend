@@ -23,7 +23,7 @@ from src.projects.domain import Project
 from src.projects.unit_of_work import ProjectUnitOfWork
 from src.reports.domain import Report
 from src.reports.exceptions import ReportDoesNotExistsException
-from src.reports.schemas import ReportCreateUpdateSchema
+from src.reports.schemas import ReportCreateUpdateSchema, ReportFilterSchema
 from src.reports.services import ReportServices
 from src.reports.unit_of_work import ReportUnitOfWork
 
@@ -89,9 +89,10 @@ async def get_reports_list(
             Depends(ReportUnitOfWork)
         ],
         pagination: Annotated[PaginationRequestSchema, Depends(PaginationRequestSchema)],
+        filters: Annotated[ReportFilterSchema, Depends(ReportFilterSchema)],
 ):
-    devices = await report_uow.list(**pagination.dict())
-    count = await report_uow.count()
+    devices = await report_uow.list(**filters.dict(), **pagination.dict())
+    count = await report_uow.count(**filters.dict())
     paginator = Paginator[Report](models_list=devices, count=count, **pagination.dict())
     return await paginator.get_response()
 
