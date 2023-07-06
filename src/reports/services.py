@@ -148,7 +148,7 @@ class ReportServices:
             <h2>{project.name} Electricity Production Report</h2>
             <p>This is to inform you about the electricity production of {project.name} 
             from {report.date_from} to {report.date_to}.</p>
-            <p><strong>Electricity Production:</strong> {report.value} kWh</p>
+            <p><strong>Electricity Production:</strong> {report.value/100:9.4f} kWh</p>
             <p>Below is the graph showing the daily production of electricity:</p>
             <img src="data:image/png;base64,{encoded_image}" alt="Daily Production Graph" style="display: block; margin-left: auto; margin-right: auto/>;
         </body> 

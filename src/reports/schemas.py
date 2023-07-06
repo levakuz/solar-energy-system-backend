@@ -15,3 +15,7 @@ class ReportGenerateSchema(BaseModel):
     date_to: datetime
     value: float
     plot_path: str
+
+
+class ReportFilterSchema(BaseModel):
+    project_id: int
