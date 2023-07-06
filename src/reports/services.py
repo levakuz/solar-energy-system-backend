@@ -196,7 +196,6 @@ class ReportServices:
             **kwargs,
 
     ):
-        service_scheduler.remove_job(f'report__{project.id}')
         service_scheduler.add_job(
             cls.generate_report,
             'date',
@@ -241,6 +240,7 @@ class ReportServices:
                 project_uow=project_uow
             )
         else:
+            service_scheduler.remove_job(f'report__{project.id}')
             await cls.schedule_report_creation(
                 date_from=date_from,
                 date_to=date_to,
