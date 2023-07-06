@@ -111,7 +111,7 @@ class ReportServices:
         report_template = await ReportServices.generate_report_template(
             report=report,
             project_uow=project_uow,
-            project_id=project.id
+            project_id=project.id,
         )
         await account_services.send_email_to_user(
             account=current_user,
@@ -128,7 +128,8 @@ class ReportServices:
     ):
         project = await project_uow.get(id=project_id)
         # Read the temporary file as bytes
-        with open(report.plot_path, "rb") as file:
+        chart_path = f'./src/staticfiles/report_charts/{report.plot_path}'
+        with open(chart_path, "rb") as file:
             img_data = file.read()
 
         # Encode the image data using base64
@@ -195,6 +196,7 @@ class ReportServices:
             **kwargs,
 
     ):
+        service_scheduler.remove_job(f'report__{project.id}')
         service_scheduler.add_job(
             cls.generate_report,
             'date',
