@@ -89,7 +89,8 @@ class ReportServices:
                     project_energy[date] = device_energy_value
                 total_energy += device_energy_value
                 date = date + timedelta(hours=1)
-        chart_path = f'./src/staticfiles/report_charts/{project.name}_{uuid.uuid4()}.png'
+        chart_name = f'{project.name}_{uuid.uuid4()}.png'
+        chart_path = f'./src/staticfiles/report_charts/{chart_name}'
         await cls.create_plot_for_report(
             dates=list(project_energy.keys()),
             energy_values=list(project_energy.values()),
@@ -103,7 +104,7 @@ class ReportServices:
                 date_from=date_from,
                 date_to=date_to,
                 value=total_energy,
-                plot_path=chart_path
+                plot_path=chart_name
             ).dict()
         )
         # Due to scheduler now business logic depends on sending email
